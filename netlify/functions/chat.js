@@ -48,12 +48,13 @@ export default async (req) => {
     }
 
     const answer =
-      data.output
-        ?.filter(item => item.type === "text")
-        .map(item => item.text)
-        .join("") ||
-      data.output_text ||
-      "I couldn't generate an answer.";
+  data.steps
+    ?.filter(step => step.type === "model_output")
+    .flatMap(step => step.content || [])
+    .filter(item => item.type === "text")
+    .map(item => item.text)
+    .join("") ||
+  "I couldn't generate an answer.";
 
     return new Response(
       JSON.stringify({ answer }),
