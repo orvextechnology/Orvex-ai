@@ -25,7 +25,7 @@ export default async (req) => {
     }
 
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
+      "https://generativelanguage.googleapis.com/v1beta/interactions",
       {
         method: "POST",
         headers: {
@@ -33,11 +33,8 @@ export default async (req) => {
           "x-goog-api-key": apiKey
         },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: message }]
-            }
-          ]
+          model: "gemini-3.8-flash",
+          input: message
         })
       }
     );
@@ -45,19 +42,17 @@ export default async (req) => {
     const data = await response.json();
 
     if (!response.ok) {
-      return new Response(
-        JSON.stringify({
-          error: data.error?.message || "AI request failed"
-        }),
-        {
-          status: response.status,
-          headers: { "Content-Type": "application/json" }
-        }
+      throw new Error(
+        data.error?.message || "Gemini request failed."
       );
     }
 
     const answer =
-      data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      data.output
+        ?.filter(item => item.type === "text")
+        .map(item => item.text)
+        .join("") ||
+      data.output_text ||
       "I couldn't generate an answer.";
 
     return new Response(
