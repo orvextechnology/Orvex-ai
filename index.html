@@ -108,4 +108,37 @@ async function sendToOrvex(message) {
   return data.answer;
 }
   </script>
+  <section id="chatSection" style="display:none;max-width:850px;margin:40px auto;padding:20px;">
+
+<h1 style="text-align:center;color:#a78bfa">ORVEX AI</h1>
+
+<p style="text-align:center;color:#b8c0d9">
+Your intelligent AI assistant.
+</p>
+
+<div id="chatBox" style="background:#121b35;border:1px solid #293658;border-radius:14px;padding:20px;min-height:300px;margin:20px 0;">
+
+<div style="color:#a78bfa">
+Hello! I'm ORVEX AI. How can I help you today?
+</div>
+
+</div>
+
+<div style="display:flex;gap:8px">
+
+<input id="userInput"
+placeholder="Ask ORVEX anything..."
+style="flex:1;min-width:0;padding:15px;border-radius:9px;border:1px solid #293658;background:#121b35;color:white;">
+
+<button onclick="sendMessage()">Send</button>
+
+</div>
+
+<button onclick="goHome()" style="margin-top:15px">
+Back to Home
+</button>
+
+  </section>
+  <div class="card" onclick="openChat()" style="cursor:pointer">
+<h2>🤖 AI Assistant</h2>
   </html>
