@@ -24,37 +24,57 @@ export default async (req) => {
       throw new Error("Gemini API key is missing.");
     }
 
-    const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/interactions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey
-        },
-        body: JSON.stringify({
-          model: "gemini-3.8-flash",
-          input: message
-        })
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        data.error?.message || "Gemini request failed."
+    async function askGemini(model) {
+      const response = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/interactions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey
+          },
+          body: JSON.stringify({
+            model: model,
+            input: message
+          })
+        }
       );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const error = new Error(
+          data.error?.message || "AI request failed."
+        );
+        error.status = response.status;
+        throw error;
+      }
+
+      const answer = data.steps
+        ?.filter(step => step.type === "model_output")
+        .flatMap(step => step.content || [])
+        .filter(item => item.type === "text")
+        .map(item => item.text)
+        .join("");
+
+      if (!answer) {
+        throw new Error("The AI returned an empty response.");
+      }
+
+      return answer;
     }
 
-    const answer =
-  data.steps
-    ?.filter(step => step.type === "model_output")
-    .flatMap(step => step.content || [])
-    .filter(item => item.type === "text")
-    .map(item => item.text)
-    .join("") ||
-  "I couldn't generate an answer.";
+    let answer;
+
+    try {
+      answer = await askGemini("gemini-3.8-flash");
+    } catch (error) {
+      if (![429, 500, 503].includes(error.status)) {
+        throw error;
+      }
+
+      answer = await askGemini("gemini-3.5-flash-lite");
+    }
 
     return new Response(
       JSON.stringify({ answer }),
