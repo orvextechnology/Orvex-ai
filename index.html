@@ -88,6 +88,47 @@ Explore ORVEX
 </section>
 
 <footer>© 2026 ORVEX LABS. Building intelligence for everyone.</footer>
+  <script>
+function openChat() {
+  document.querySelector('.hero').style.display = 'none';
+  document.querySelector('.features').style.display = 'none';
+  document.getElementById('chatSection').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+function goHome() {
+  document.querySelector('.hero').style.display = 'block';
+  document.querySelector('.features').style.display = 'grid';
+  document.getElementById('chatSection').style.display = 'none';
+  window.scrollTo(0, 0);
+}
+
+async function sendMessage() {
+  const input = document.getElementById('userInput');
+  const chatBox = document.getElementById('chatBox');
+  const message = input.value.trim();
+
+  if (!message) return;
+
+  const userMessage = document.createElement('p');
+  userMessage.textContent = 'You: ' + message;
+  chatBox.appendChild(userMessage);
+  input.value = '';
+
+  const thinking = document.createElement('p');
+  thinking.textContent = 'ORVEX AI is thinking...';
+  chatBox.appendChild(thinking);
+
+  try {
+    const answer = await sendToOrvex(message);
+    thinking.textContent = 'ORVEX AI: ' + answer;
+  } catch (error) {
+    thinking.textContent = 'Error: ' + error.message;
+  }
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+  </script>
 </body>
   <script>
 async function sendToOrvex(message) {
