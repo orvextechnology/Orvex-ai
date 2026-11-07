@@ -1,6 +1,8 @@
 export default async (req) => {
   if (req.method !== "POST") {
-    return new Response("Method not allowed", { status: 405 });
+    return new Response("Method not allowed", {
+      status: 405
+    });
   }
 
   try {
@@ -9,14 +11,21 @@ export default async (req) => {
     if (!message) {
       return new Response(
         JSON.stringify({ error: "Please enter a message." }),
-        { status: 400 }
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" }
+        }
       );
     }
 
     const apiKey = Netlify.env.get("GEMINI_API_KEY");
 
+    if (!apiKey) {
+      throw new Error("Gemini API key is missing.");
+    }
+
     const response = await fetch(
-      https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
       {
         method: "POST",
         headers: {
@@ -24,7 +33,11 @@ export default async (req) => {
           "x-goog-api-key": apiKey
         },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: message }] }]
+          contents: [
+            {
+              parts: [{ text: message }]
+            }
+          ]
         })
       }
     );
@@ -33,8 +46,13 @@ export default async (req) => {
 
     if (!response.ok) {
       return new Response(
-        JSON.stringify({ error: data.error?.message || "AI request failed" }),
-        { status: response.status }
+        JSON.stringify({
+          error: data.error?.message || "AI request failed"
+        }),
+        {
+          status: response.status,
+          headers: { "Content-Type": "application/json" }
+        }
       );
     }
 
@@ -42,16 +60,20 @@ export default async (req) => {
       data.candidates?.[0]?.content?.parts?.[0]?.text ||
       "I couldn't generate an answer.";
 
-    return new Response(JSON.stringify({ answer }), {
-      headers: { "Content-Type": "application/json" }
-    });
+    return new Response(
+      JSON.stringify({ answer }),
+      {
+        headers: { "Content-Type": "application/json" }
+      }
+    );
 
-  catch (error) {
-  return new Response(
-    JSON.stringify({ error: error.message }),
-    {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    }
-  );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      }
+    );
   }
+};
