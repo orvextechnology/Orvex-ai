@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORVEX AI</title>
+<style>
+*{box-sizing:border-box}
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:#080d20;
+color:white;
+}
+header{
+padding:22px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+border-bottom:1px solid #202b49;
+}
+.logo{font-size:25px;font-weight:bold;color:#a78bfa}
+.hero{
+text-align:center;
+padding:90px 20px 50px;
+}
+h1{font-size:43px;margin-bottom:15px}
+h1 span{color:#a78bfa}
+.hero p{color:#b8c0d9;line-height:1.7}
+button{
+background:#8057ed;
+color:white;
+border:0;
+padding:14px 25px;
+border-radius:9px;
+font-size:16px;
+}
+.features{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:18px;
+padding:30px 20px;
+max-width:950px;
+margin:auto;
+}
+.card{
+background:#121b35;
+padding:25px;
+border:1px solid #293658;
+border-radius:14px;
+}
+.card p{color:#b8c0d9;line-height:1.6}
+footer{text-align:center;padding:35px;color:#8993ad}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">ORVEX AI</div>
+<div>ORVEX LABS</div>
+</header>
+
+<section class="hero">
+<h1>Intelligence <span>Without Boundaries.</span></h1>
+<p>Discover a smarter way to learn, research and explore ideas.<br>
+Technology designed to empower everyone.</p>
+<button onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">
+Explore ORVEX
+</button>
+</section>
+
+<section class="features" id="features">
+<div class="card">
+<h2>🤖 AI Assistant</h2>
+<p>Intelligent conversations and everyday assistance.</p>
+</div>
+<div class="card">
+<h2>📚 Study Assistant</h2>
+<p>Learn difficult subjects with clear explanations.</p>
+</div>
+<div class="card">
+<h2>🔬 Science Assistant</h2>
+<p>Explore science, technology and research.</p>
+</div>
+<div class="card">
+<h2>🧮 Mathematics</h2>
+<p>Understand mathematical problems step by step.</p>
+</div>
+</section>
+
+<footer>© 2026 ORVEX LABS. Building intelligence for everyone.</footer>
+</body>
+  </html>
