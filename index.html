@@ -227,7 +227,9 @@ async function sendToOrvex(message) {
     body: JSON.stringify({ message })
   });
 
-  const data = await response.json();
+  const raw = await response.text();
+console.log("Server response:", raw);
+const data = JSON.parse(raw);
 
   if (!response.ok) {
     throw new Error(data.error || 'Something went wrong');
