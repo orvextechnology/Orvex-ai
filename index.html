@@ -89,4 +89,23 @@ Explore ORVEX
 
 <footer>© 2026 ORVEX LABS. Building intelligence for everyone.</footer>
 </body>
+  <script>
+async function sendToOrvex(message) {
+  const response = await fetch('/.netlify/functions/chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ message })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Something went wrong');
+  }
+
+  return data.answer;
+}
+  </script>
   </html>
