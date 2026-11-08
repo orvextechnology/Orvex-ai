@@ -1,58 +1,251 @@
-      <button class="btn" onclick="clearChat()">Clear Chat</button>
-    </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080d20">
+<title>ORVEX AI</title>
 
-    <div id="messages">
-      <div class="welcome" id="welcome">
-        <h1>Welcome to ORVEX AI</h1>
-        <p>Your intelligent AI assistant. Ask questions, upload images, or use your voice.</p>
+<style>
+:root{
+  --bg:#080d20;
+  --panel:#101a35;
+  --panel2:#162343;
+  --purple:#8b5cf6;
+  --cyan:#38bdf8;
+  --text:#f4f6ff;
+  --muted:#aab5d1;
+  --line:#263657;
+}
 
-        <div class="features">
-          <div class="feature">💬 AI Conversations</div>
-          <div class="feature">🖼️ Image Understanding</div>
-          <div class="feature">🎨 Image Generation</div>
-          <div class="feature">🎙️ Voice Assistant</div>
-        </div>
-      </div>
-    </div>
+*{box-sizing:border-box}
 
-    <div class="composer">
-      <div class="tools-row">
-        <select id="mode">
-          <option value="chat">Normal Chat</option>
-          <option value="generate_image">Generate Image</option>
-          <option value="edit_image">Edit Uploaded Image</option>
-        </select>
+body{
+  margin:0;
+  background:radial-gradient(circle at top,#17264a 0,#080d20 48%);
+  color:var(--text);
+  font-family:Arial,sans-serif;
+  min-height:100vh;
+}
 
-        <button class="btn" type="button" onclick="document.getElementById('imageInput').click()">＋ Image</button>
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
 
-        <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+header{
+  height:66px;
+  padding:0 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--line);
+  background:#080d20ef;
+  position:sticky;
+  top:0;
+  z-index:5;
+}
 
-        <button class="btn" type="button" id="voiceBtn" onclick="startVoiceInput()">🎙️ Voice</button>
-      </div>
+.brand{
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:2px;
+  background:linear-gradient(90deg,#fff,#a78bfa,#38bdf8);
+  background-clip:text;
+  color:transparent;
+}
 
-      <div id="imagePreview" class="hidden"></div>
+.brand small{
+  display:block;
+  font-size:9px;
+  letter-spacing:4px;
+  color:#9aa9cd;
+  margin-top:2px;
+}
 
-      <textarea id="prompt" placeholder="Message ORVEX AI..."></textarea>
+.header-actions{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
 
-      <div class="send-row">
-        <button class="btn" type="button" id="stopVoiceBtn" onclick="stopSpeaking()">Stop Voice</button>
-        <button class="btn primary" type="button" id="sendBtn" onclick="sendMessage()">Send ➤</button>
-      </div>
+.btn{
+  border:1px solid #34466c;
+  background:#1a294a;
+  color:white;
+  border-radius:10px;
+  padding:10px 13px;
+}
 
-      <div id="notice">ORVEX AI is ready.</div>
-    </div>
+.btn.primary{
+  background:linear-gradient(110deg,#7045db,#287fc4);
+  border:0;
+}
 
-  </section>
-</section>
+.btn:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
 
-</main>
+main{
+  max-width:1100px;
+  margin:auto;
+  padding:24px 16px;
+}
 
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+.auth-card{
+  max-width:420px;
+  margin:8vh auto;
+  background:#101a35;
+  border:1px solid var(--line);
+  padding:28px;
+  border-radius:18px;
+  box-shadow:0 20px 60px #0006;
+}
 
-<script>
-const firebaseConfig = {
+h1,h2,p{margin-top:0}
+.auth-card h1{text-align:center}
+
+.sub{
+  color:var(--muted);
+  text-align:center;
+  line-height:1.5;
+}
+
+.field{
+  width:100%;
+  padding:13px;
+  margin:8px 0;
+  background:#080f25;
+  color:white;
+  border:1px solid #33466d;
+  border-radius:10px;
+  outline:none;
+}
+
+.auth-buttons{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+
+.auth-buttons button{flex:1}
+
+.status{
+  min-height:22px;
+  color:#fca5a5;
+  font-size:13px;
+  margin-top:10px;
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:250px minmax(0,1fr);
+  gap:18px;
+  min-height:calc(100vh - 120px);
+}
+
+.sidebar,.chat-panel,.welcome{
+  background:#0f1932ef;
+  border:1px solid var(--line);
+  border-radius:16px;
+}
+
+.sidebar{
+  padding:14px;
+  height:calc(100vh - 110px);
+  position:sticky;
+  top:82px;
+  display:flex;
+  flex-direction:column;
+}
+
+.sidebar .btn{
+  width:100%;
+  margin-bottom:12px;
+}
+
+.history-title{
+  color:var(--muted);
+  font-size:12px;
+  margin:12px 5px;
+}
+
+#historyList{overflow:auto}
+
+.history-item{
+  display:block;
+  width:100%;
+  text-align:left;
+  background:transparent;
+  color:#dbe5ff;
+  border:0;
+  border-radius:8px;
+  padding:10px;
+  margin:3px 0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.history-item:hover{background:#1b2a4c}
+
+.chat-panel{
+  display:flex;
+  flex-direction:column;
+  min-height:calc(100vh - 120px);
+  overflow:hidden;
+}
+
+.chat-top{
+  padding:15px 18px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.chat-top span{
+  color:var(--muted);
+  font-size:12px;
+}
+
+#messages{
+  padding:20px;
+  flex:1;
+  overflow-y:auto;
+  min-height:350px;
+}
+
+.welcome{
+  padding:28px;
+  margin:12px auto;
+  max-width:650px;
+  text-align:center;
+  background:linear-gradient(140deg,#17264a,#111a34);
+}
+
+.welcome h1{font-size:30px}
+
+.welcome p{
+  color:var(--muted);
+  line-height:1.6;
+}
+
+.features{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  margin-top:20px;
+}
+
+.feature{
+  background:#0b1430;
+  border:1px solid var(--line);
+  padding:13px;
+  border-radius:10px;
+  color:#cbd7f3;
+  font-size:13
+      const firebaseConfig = {
   apiKey: "AIzaSyD4oCtqtD8U1wnErSP10iu2sIr0XzaqrQs",
   authDomain: "orvex-ai-f4bb3.firebaseapp.com",
   projectId: "orvex-ai-f4bb3",
@@ -142,7 +335,10 @@ auth.onAuthStateChanged(async user => {
     label.classList.remove("hidden");
 
     await loadChatHistory();
-    if (!currentChatId) newChat();
+
+    if (!currentChatId) {
+      newChat();
+    }
   } else {
     authSection.classList.remove("hidden");
     appSection.classList.add("hidden");
@@ -154,9 +350,6 @@ auth.onAuthStateChanged(async user => {
 function newChat() {
   currentChatId = null;
   conversationHistory = [];
-  selectedImage = null;
-  selectedImageUrl = null;
-
   clearImagePreview();
 
   messages.innerHTML = `
@@ -208,6 +401,7 @@ function formatAnswer(text) {
     }
 
     const heading = line.match(/^#{1,3}\s+(.+)/);
+
     if (heading) {
       closeList();
       html += `<h3>${heading[1]}</h3>`;
@@ -233,11 +427,16 @@ function formatAnswer(text) {
 
     closeList();
 
-    const formatted = line.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+    const formatted = line.replace(
+      /\*\*(.*?)\*\*/g,
+      "<strong>$1</strong>"
+    );
+
     html += `<p>${formatted}</p>`;
   }
 
   closeList();
+
   return `<div class="formatted-answer">${html}</div>`;
 }
 
@@ -285,6 +484,7 @@ function addMessage(role, text, imageUrl = null) {
 
   messages.appendChild(message);
   messages.scrollTop = messages.scrollHeight;
+
   return message;
 }
 
@@ -305,9 +505,11 @@ async function loadChatHistory() {
     snapshot.forEach(doc => {
       const data = doc.data();
       const button = document.createElement("button");
+
       button.className = "history-item";
       button.textContent = data.title || "New conversation";
       button.onclick = () => openChat(doc.id);
+
       historyList.appendChild(button);
     });
   } catch (error) {
@@ -325,7 +527,10 @@ async function saveConversation() {
       .doc().id;
   }
 
-  const firstMessage = conversationHistory.find(item => item.role === "user");
+  const firstMessage = conversationHistory.find(
+    item => item.role === "user"
+  );
+
   const title = firstMessage
     ? firstMessage.parts?.[0]?.text?.slice(0, 45) || "New conversation"
     : "New conversation";
@@ -362,14 +567,14 @@ async function openChat(chatId) {
 
     currentChatId = chatId;
     conversationHistory = doc.data().messages || [];
-    selectedImage = null;
-    selectedImageUrl = null;
+
     clearImagePreview();
     messages.innerHTML = "";
 
     conversationHistory.forEach(item => {
       const text = item.parts?.map(part => part.text || "").join("") || "";
       const role = item.role === "user" ? "user" : "assistant";
+
       addMessage(role, text);
     });
 
@@ -382,6 +587,7 @@ async function openChat(chatId) {
 
 document.getElementById("imageInput").addEventListener("change", async event => {
   const file = event.target.files[0];
+
   if (!file) return;
 
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
@@ -399,6 +605,7 @@ document.getElementById("imageInput").addEventListener("change", async event => 
   try {
     selectedImage = await compressImage(file);
     selectedImageUrl = URL.createObjectURL(file);
+
     showImagePreview(selectedImageUrl);
     notice.textContent = "Image attached.";
   } catch (error) {
@@ -416,7 +623,11 @@ function compressImage(file) {
 
       img.onload = () => {
         const maxSize = 1200;
-        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const scale = Math.min(
+          1,
+          maxSize / Math.max(img.width, img.height)
+        );
+
         const canvas = document.createElement("canvas");
 
         canvas.width = Math.round(img.width * scale);
@@ -426,6 +637,7 @@ function compressImage(file) {
         context.drawImage(img, 0, 0, canvas.width, canvas.height);
 
         const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+
         resolve({
           data: dataUrl.split(",")[1],
           mimeType: "image/jpeg"
@@ -465,10 +677,13 @@ function clearImagePreview() {
   preview.innerHTML = "";
   preview.classList.add("hidden");
 
-  if (selectedImageUrl) URL.revokeObjectURL(selectedImageUrl);
+  if (selectedImageUrl) {
+    URL.revokeObjectURL(selectedImageUrl);
+  }
 
   selectedImage = null;
   selectedImageUrl = null;
+
   document.getElementById("imageInput").value = "";
 }
 
@@ -492,10 +707,16 @@ async function sendMessage() {
   sendBtn.disabled = true;
   notice.textContent = "ORVEX is thinking...";
 
-  const imageForMessage = selectedImageUrl;
   const imageData = selectedImage;
+
+  const imageForMessage = imageData
+    ? `data:${imageData.mimeType};base64,${imageData.data}`
+    : null;
+
   const userText = message || (
-    mode === "generate_image" ? "Generate an image." : "Please examine this image."
+    mode === "generate_image"
+      ? "Generate an image."
+      : "Please examine this image."
   );
 
   addMessage("user", userText, imageForMessage);
@@ -508,7 +729,9 @@ async function sendMessage() {
   try {
     const response = await fetch("/.netlify/functions/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
         message: userText,
         history: historyForRequest,
@@ -520,10 +743,13 @@ async function sendMessage() {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || data.message || "The AI request failed.");
+      throw new Error(
+        data.error || data.message || "The AI request failed."
+      );
     }
 
     const answer = data.answer || "I couldn't generate a response.";
+
     const generatedImageUrl = data.image?.data
       ? `data:${data.image.mimeType || "image/png"};base64,${data.image.data}`
       : null;
@@ -540,7 +766,12 @@ async function sendMessage() {
     notice.textContent = "ORVEX is ready.";
   } catch (error) {
     console.error("Chat error:", error);
-    addMessage("assistant", "Sorry, I couldn't complete that request.\n\n" + error.message);
+
+    addMessage(
+      "assistant",
+      "Sorry, I couldn't complete that request.\n\n" + error.message
+    );
+
     notice.textContent = "Request failed.";
   } finally {
     isSending = false;
@@ -557,7 +788,8 @@ promptInput.addEventListener("keydown", event => {
 });
 
 function startVoiceInput() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if (!SpeechRecognition) {
     notice.textContent = "Voice input is not supported by this browser. Try Chrome.";
@@ -565,6 +797,7 @@ function startVoiceInput() {
   }
 
   const recognition = new SpeechRecognition();
+
   recognition.lang = "en-US";
   recognition.continuous = false;
   recognition.interimResults = false;
@@ -573,7 +806,11 @@ function startVoiceInput() {
 
   recognition.onresult = event => {
     const spokenText = event.results[0][0].transcript;
-    promptInput.value = (promptInput.value + " " + spokenText).trim();
+
+    promptInput.value = (
+      promptInput.value + " " + spokenText
+    ).trim();
+
     notice.textContent = "Voice message added. Press Send.";
   };
 
@@ -599,6 +836,7 @@ function speakText(text) {
   stopSpeaking();
 
   const utterance = new SpeechSynthesisUtterance(text);
+
   utterance.lang = "en-US";
   utterance.rate = 1;
   utterance.pitch = 1;
@@ -614,4 +852,4 @@ function stopSpeaking() {
 </script>
 
 </body>
-  </html>
+</html>
