@@ -341,7 +341,7 @@ async function sendMessage() {
   try {
     const answer = await sendToOrvex(message);
     thinking.className = 'ai-message';
-thinking.textContent = 'ORVEX AI: ' + answer;
+thinking.innerHTML = formatAnswer('ORVEX AI: ' + answer);
   } catch (error) {
     thinking.textContent = 'Error: ' + error.message;
   }
