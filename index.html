@@ -111,7 +111,23 @@ footer {
   color: #a78bfa;
   margin: 0;
 }
+#chatHistory {
+  background: #121b35;
+  border: 1px solid #293658;
+  border-radius: 12px;
+  padding: 15px;
+  margin: 20px 0;
+}
 
+#historyList button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 8px 0;
+  background: #202b49;
+  font-size: 14px;
+  padding: 12px;
+    }
 #chatBox {
   background: #121b35;
   border: 1px solid #293658;
@@ -296,7 +312,10 @@ footer {
   <p style="color:#b8c0d9">
     Your intelligent AI assistant.
   </p>
-
+<div id="chatHistory">
+  <h3>My Conversations</h3>
+  <div id="historyList"></div>
+</div>
   <div id="chatBox">
     <p style="color:#a78bfa">
       Hello! I'm ORVEX AI. How can I help you today?
@@ -364,6 +383,7 @@ footer {
 <script>
 
 let conversationHistory = [];
+let currentChatId = null;
 
 const STORAGE_KEY = "orvex_conversation";
 
@@ -415,7 +435,38 @@ function showAccount() {
   window.scrollTo(0, 0);
 }
 
-function saveConversation() {
+async function saveConversation() {
+
+  if (!auth.currentUser) return;
+
+  if (!currentChatId) {
+    currentChatId = db.collection("users")
+      .doc(auth.currentUser.uid)
+      .collection("chats")
+      .doc().id;
+  }
+
+  const firstMessage = conversationHistory.find(
+    item => item.role === "user"
+  );
+
+  try {
+    await db.collection("users")
+      .doc(auth.currentUser.uid)
+      .collection("chats")
+      .doc(currentChatId)
+      .set({
+        title: firstMessage
+          ? firstMessage.content.substring(0, 50)
+          : "New Chat",
+        messages: conversationHistory,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+  } catch (error) {
+    console.error("Chat saving failed:", error);
+  }
+                          }
 
   if (!auth.currentUser) return;
 
@@ -424,8 +475,86 @@ function saveConversation() {
     JSON.stringify(conversationHistory)
   );
 }
+async function loadConversation() {
 
-function loadConversation() {
+  currentChatId = null;
+  conversationHistory = [];
+
+  renderConversation();
+
+  await loadChatHistory();
+}
+
+async function loadChatHistory() {
+
+  if (!auth.currentUser) return;
+
+  const historyList = document.getElementById("historyList");
+
+  historyList.innerHTML = "Loading conversations...";
+
+  try {
+
+    const snapshot = await db.collection("users")
+      .doc(auth.currentUser.uid)
+      .collection("chats")
+      .orderBy("updatedAt", "desc")
+      .get();
+
+    historyList.innerHTML = "";
+
+    if (snapshot.empty) {
+      historyList.innerHTML = "<p>No saved conversations yet.</p>";
+      return;
+    }
+
+    snapshot.forEach(doc => {
+
+      const button = document.createElement("button");
+
+      button.textContent = doc.data().title || "New Chat";
+
+      button.onclick = () => openSavedChat(doc.id);
+
+      historyList.appendChild(button);
+
+    });
+
+  } catch (error) {
+
+    historyList.textContent = "Could not load conversations.";
+
+    console.error(error);
+
+  }
+}
+
+async function openSavedChat(chatId) {
+
+  if (!auth.currentUser) return;
+
+  try {
+
+    const doc = await db.collection("users")
+      .doc(auth.currentUser.uid)
+      .collection("chats")
+      .doc(chatId)
+      .get();
+
+    if (!doc.exists) return;
+
+    currentChatId = chatId;
+
+    conversationHistory = doc.data().messages || [];
+
+    renderConversation();
+
+  } catch (error) {
+
+    alert("Could not open this conversation.");
+
+  }
+  }
 
   try {
 
@@ -445,6 +574,16 @@ function loadConversation() {
 }
 
 function newChat() {
+
+  if (!auth.currentUser) return;
+
+  conversationHistory = [];
+  currentChatId = null;
+
+  renderConversation();
+
+  document.getElementById("userInput").focus();
+  }
 
   if (!auth.currentUser) return;
 
