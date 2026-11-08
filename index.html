@@ -430,5 +430,92 @@ function formatAnswer(text) {
   return html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 }
 
-async function sendToOrvex(message) {
-  const response = await
+  async function sendToOrvex(message) {
+  const response = await fetch('/.netlify/functions/chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      message,
+      history: conversationHistory
+    })
+  });
+
+  const raw = await response.text();
+  const data = JSON.parse(raw);
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Something went wrong');
+  }
+
+  return data.answer;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('userInput');
+  const sendButton = document.getElementById('sendButton');
+  const chatBox = document.getElementById('chatBox');
+
+  const message = input.value.trim();
+
+  if (!message || sendButton.disabled) return;
+
+  input.value = '';
+  sendButton.disabled = true;
+  sendButton.textContent = '...';
+
+  const userMessage = document.createElement('p');
+  userMessage.className = 'user-message';
+  userMessage.textContent = 'You: ' + message;
+  chatBox.appendChild(userMessage);
+
+  const thinking = document.createElement('p');
+  thinking.className = 'ai-message';
+  thinking.textContent = 'ORVEX AI is thinking...';
+  chatBox.appendChild(thinking);
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  try {
+    const answer = await sendToOrvex(message);
+
+    conversationHistory.push({
+      role: 'user',
+      content: message
+    });
+
+    conversationHistory.push({
+      role: 'assistant',
+      content: answer
+    });
+
+    saveConversation();
+
+    thinking.innerHTML = formatAnswer(answer);
+
+  } catch (error) {
+    thinking.textContent = 'Error: ' + error.message;
+    input.value = message;
+  }
+
+  sendButton.disabled = false;
+  sendButton.textContent = 'Send';
+  input.focus();
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+document.getElementById('userInput').addEventListener(
+  'keydown',
+  function(event) {
+    if (event.key === 'Enter') {
+      sendMessage();
+    }
+  }
+);
+
+</script>
+
+</body>
+</html>
