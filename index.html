@@ -541,7 +541,7 @@ function startVoiceInput() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if (!SpeechRecognition) {
-    addSystemNote("Voice input is not supported in this browser. Try Chrome on Android and allow microphone access.");
+    addSystemNote("Voice input is not supported in this browser. Try Chrome on Android.");
     return;
   }
 
@@ -559,4 +559,37 @@ function startVoiceInput() {
     $("prompt").value = ($("prompt").value + " " + spoken).trim();
   };
 
-  r
+  recognition.onerror = event => {
+    addSystemNote("Voice input error: " + event.error);
+  };
+
+  recognition.onend = () => {
+    $("micBtn").textContent = "🎤 Speak";
+  };
+
+  recognition.start();
+}
+
+function speakText(text) {
+  if (!("speechSynthesis" in window)) {
+    addSystemNote("Voice reading is not supported in this browser.");
+    return;
+  }
+
+  speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "en-US";
+  utterance.rate = 1;
+
+  speechSynthesis.speak(utterance);
+}
+
+function stopSpeaking() {
+  if ("speechSynthesis" in window) {
+    speechSynthesis.cancel();
+  }
+}
+</script>
+</body>
+</html>
