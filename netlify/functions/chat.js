@@ -59,10 +59,11 @@ export default async (req) => {
 
       if (!response.ok) {
         const error = new Error(
-          data.error?.message ||
-          data.message ||
-          `Gemini request failed (HTTP ${response.status}).`
-        );
+  JSON.stringify(data)
+);
+
+error.status = response.status;
+throw error;
 
         error.status = response.status;
         throw error;
