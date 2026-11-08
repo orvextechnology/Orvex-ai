@@ -516,15 +516,26 @@ document.getElementById('userInput').addEventListener(
 );
 
 </script>
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<script>
 const firebaseConfig = {
-  apiKey: "AIzaSyD4oCtqtD8U1wnErSP10iu2sIr0XzaqrQs",
+  apiKey: "PASTE_YOUR_EXISTING_API_KEY_HERE",
   authDomain: "orvex-ai-f4bb3.firebaseapp.com",
   projectId: "orvex-ai-f4bb3",
   storageBucket: "orvex-ai-f4bb3.firebasestorage.app",
   messagingSenderId: "330308895814",
   appId: "1:330308895814:web:88c727af7b07ce5fd4b647",
   measurementId: "G-CZEGRQQ5R4"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+</script>
 };
 };
 </body>
