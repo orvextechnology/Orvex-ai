@@ -11,7 +11,7 @@ export default async (req) => {
   }
 
   try {
-    const { message } = await req.json();
+    const { message, history = [] } = await req.json();
 
     if (!message || typeof message !== "string") {
       return new Response(
@@ -26,6 +26,17 @@ export default async (req) => {
       throw new Error("Gemini API key is missing.");
     }
 
+    const conversationHistory = Array.isArray(history)
+      ? history.slice(-12).map(item => {
+          const role = item.role === "assistant" ? "ORVEX AI" : "User";
+          return `${role}: ${String(item.content || "")}`;
+        }).join("\n\n")
+      : "";
+
+    const prompt = conversationHistory
+      ? `Continue this conversation. Remember the earlier messages:\n\n${conversationHistory}\n\nUser: ${message}`
+      : message;
+
     async function askGemini(model) {
       const response = await fetch(
         "https://generativelanguage.googleapis.com/v1beta/interactions",
@@ -37,39 +48,27 @@ export default async (req) => {
           },
           body: JSON.stringify({
             model,
-            input: message
+            input: prompt
           }),
-          signal: AbortSignal.timeout(10000)
+          signal: AbortSignal.timeout(15000)
         }
       );
 
       const raw = await response.text();
-
       let data;
 
       try {
         data = JSON.parse(raw);
       } catch {
-        const error = new Error(
-          `Gemini returned an invalid response (HTTP ${response.status}).`
-        );
+        const error = new Error("Gemini returned an invalid response.");
         error.status = response.status;
         throw error;
       }
 
       if (!response.ok) {
-        const error = new Error(
-  JSON.stringify(data)
-);
-
-if (!response.ok) {
-  const error = new Error(
-    JSON.stringify(data)
-  );
-
-  error.status = response.status;
-  throw error;
-  }
+        const error = new Error(JSON.stringify(data));
+        error.status = response.status;
+        throw error;
       }
 
       const answer =
@@ -94,11 +93,9 @@ if (!response.ok) {
 
     try {
       answer = await askGemini("gemini-3.8-flash");
-
     } catch (error) {
-      const retryable = [
-        429, 500, 502, 503, 504
-      ].includes(error.status);
+      const retryable = [429, 500, 502, 503, 504]
+        .includes(error.status);
 
       if (!retryable && error.name !== "TimeoutError") {
         throw error;
