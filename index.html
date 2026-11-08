@@ -140,7 +140,6 @@ footer {
   font-size: 16px;
   color: #e5e7eb;
   margin: 20px 0;
-  white-space: normal;
 }
 
 .ai-message p {
@@ -188,9 +187,10 @@ footer {
 
 #authSection {
   max-width: 400px;
-  margin: 40px auto;
+  margin: 70px auto;
   padding: 25px;
   background: #151d38;
+  border: 1px solid #293658;
   border-radius: 12px;
   color: white;
   text-align: center;
@@ -211,6 +211,10 @@ footer {
   overflow-wrap: anywhere;
 }
 
+#logoutButton {
+  display: none;
+}
+
 @media(max-width:600px) {
   h1 {
     font-size: 32px;
@@ -218,6 +222,10 @@ footer {
 
   #chatSection {
     padding: 12px;
+  }
+
+  #authSection {
+    margin: 40px 15px;
   }
 }
 </style>
@@ -227,10 +235,18 @@ footer {
 
 <header>
   <div class="logo">ORVEX AI</div>
-  <div>ORVEX LABS</div>
+  <div>
+    <span>ORVEX LABS</span>
+    <button id="logoutButton" onclick="logOut()" style="margin-left:10px">
+      Log Out
+    </button>
+  </div>
 </header>
 
-<section class="hero">
+<!-- HOME PAGE -->
+
+<section class="hero" id="heroSection" style="display:none">
+
   <h1>Intelligence <span>Without Boundaries.</span></h1>
 
   <p>
@@ -241,9 +257,10 @@ footer {
   <button onclick="openChat()">
     Explore ORVEX
   </button>
+
 </section>
 
-<section class="features" id="features">
+<section class="features" id="features" style="display:none">
 
   <div class="card" onclick="openChat()" style="cursor:pointer">
     <h2>🤖 AI Assistant</h2>
@@ -266,6 +283,8 @@ footer {
   </div>
 
 </section>
+
+<!-- AI CHAT -->
 
 <section id="chatSection" style="display:none">
 
@@ -290,7 +309,10 @@ footer {
       placeholder="Ask ORVEX anything..."
       autocomplete="off"
     >
-    <button id="sendButton" onclick="sendMessage()">Send</button>
+
+    <button id="sendButton" onclick="sendMessage()">
+      Send
+    </button>
   </div>
 
   <button onclick="goHome()" style="margin-top:15px">
@@ -299,11 +321,14 @@ footer {
 
 </section>
 
+<!-- ACCOUNT PAGE -->
+
 <div id="authSection">
+
   <h2>ORVEX AI Account</h2>
 
   <p style="color:#b8c0d9">
-    Create an account or log in.
+    Create an account or log in to continue.
   </p>
 
   <input
@@ -327,21 +352,33 @@ footer {
   </button>
 
   <p id="authMessage"></p>
+
 </div>
 
-<footer>
+<footer id="footerSection" style="display:none">
   © 2026 ORVEX LABS. Building intelligence for everyone.
 </footer>
 
+<!-- MAIN CHAT JAVASCRIPT -->
+
 <script>
+
 let conversationHistory = [];
 
 const STORAGE_KEY = "orvex_conversation";
 
 function openChat() {
-  document.querySelector('.hero').style.display = 'none';
-  document.querySelector('.features').style.display = 'none';
-  document.getElementById('chatSection').style.display = 'block';
+
+  if (!auth.currentUser) {
+    showAccount();
+    return;
+  }
+
+  document.getElementById("heroSection").style.display = "none";
+  document.getElementById("features").style.display = "none";
+  document.getElementById("footerSection").style.display = "none";
+
+  document.getElementById("chatSection").style.display = "block";
 
   loadConversation();
 
@@ -349,198 +386,284 @@ function openChat() {
 }
 
 function goHome() {
-  document.querySelector('.hero').style.display = 'block';
-  document.querySelector('.features').style.display = 'grid';
-  document.getElementById('chatSection').style.display = 'none';
+
+  if (!auth.currentUser) {
+    showAccount();
+    return;
+  }
+
+  document.getElementById("heroSection").style.display = "block";
+  document.getElementById("features").style.display = "grid";
+  document.getElementById("footerSection").style.display = "block";
+
+  document.getElementById("chatSection").style.display = "none";
+
+  window.scrollTo(0, 0);
+}
+
+function showAccount() {
+
+  document.getElementById("authSection").style.display = "block";
+
+  document.getElementById("heroSection").style.display = "none";
+  document.getElementById("features").style.display = "none";
+  document.getElementById("chatSection").style.display = "none";
+  document.getElementById("footerSection").style.display = "none";
+
+  document.getElementById("logoutButton").style.display = "none";
 
   window.scrollTo(0, 0);
 }
 
 function saveConversation() {
+
+  if (!auth.currentUser) return;
+
   localStorage.setItem(
-    STORAGE_KEY,
+    STORAGE_KEY + "_" + auth.currentUser.uid,
     JSON.stringify(conversationHistory)
   );
 }
 
 function loadConversation() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
 
-    if (saved) {
-      conversationHistory = JSON.parse(saved);
-    }
+  try {
+
+    const saved = localStorage.getItem(
+      STORAGE_KEY + "_" + auth.currentUser.uid
+    );
+
+    conversationHistory = saved ? JSON.parse(saved) : [];
+
   } catch {
+
     conversationHistory = [];
+
   }
 
   renderConversation();
 }
 
 function newChat() {
+
+  if (!auth.currentUser) return;
+
   conversationHistory = [];
 
-  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(
+    STORAGE_KEY + "_" + auth.currentUser.uid
+  );
 
   renderConversation();
 
-  document.getElementById('userInput').focus();
+  document.getElementById("userInput").focus();
 }
 
 function renderConversation() {
-  const chatBox = document.getElementById('chatBox');
 
-  chatBox.innerHTML = '';
+  const chatBox = document.getElementById("chatBox");
+
+  chatBox.innerHTML = "";
 
   if (conversationHistory.length === 0) {
+
     chatBox.innerHTML = `
       <p style="color:#a78bfa">
         Hello! I'm ORVEX AI. How can I help you today?
       </p>
     `;
+
     return;
   }
 
   conversationHistory.forEach(item => {
-    if (item.role === 'user') {
-      const p = document.createElement('p');
-      p.className = 'user-message';
-      p.textContent = 'You: ' + item.content;
+
+    if (item.role === "user") {
+
+      const p = document.createElement("p");
+
+      p.className = "user-message";
+      p.textContent = "You: " + item.content;
+
       chatBox.appendChild(p);
+
     } else {
-      const div = document.createElement('div');
-      div.className = 'ai-message';
+
+      const div = document.createElement("div");
+
+      div.className = "ai-message";
       div.innerHTML = formatAnswer(item.content);
+
       chatBox.appendChild(div);
+
     }
+
   });
 
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 function formatAnswer(text) {
+
   const escapeHTML = str => str.replace(/[&<>"']/g, char => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;'
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
   }[char]));
 
-  const lines = escapeHTML(text).split('\n');
+  const lines = escapeHTML(text).split("\n");
 
-  let html = '';
+  let html = "";
   let inList = false;
 
   for (const line of lines) {
+
     const trimmed = line.trim();
 
-    if (trimmed.startsWith('### ')) {
+    if (trimmed.startsWith("### ")) {
+
       if (inList) {
-        html += '</ul>';
+        html += "</ul>";
         inList = false;
       }
+
       html += `<h3>${trimmed.slice(4)}</h3>`;
-    } else if (trimmed.startsWith('## ')) {
+
+    } else if (trimmed.startsWith("## ")) {
+
       if (inList) {
-        html += '</ul>';
+        html += "</ul>";
         inList = false;
       }
+
       html += `<h2>${trimmed.slice(3)}</h2>`;
-    } else if (trimmed.startsWith('# ')) {
+
+    } else if (trimmed.startsWith("# ")) {
+
       if (inList) {
-        html += '</ul>';
+        html += "</ul>";
         inList = false;
       }
+
       html += `<h1>${trimmed.slice(2)}</h1>`;
-    } else if (trimmed.startsWith('---')) {
+
+    } else if (trimmed.startsWith("---")) {
+
       if (inList) {
-        html += '</ul>';
+        html += "</ul>";
         inList = false;
       }
-      html += '<hr>';
+
+      html += "<hr>";
+
     } else if (/^[-*] /.test(trimmed)) {
+
       if (!inList) {
-        html += '<ul>';
+        html += "<ul>";
         inList = true;
       }
+
       html += `<li>${trimmed.slice(2)}</li>`;
+
     } else {
+
       if (inList) {
-        html += '</ul>';
+        html += "</ul>";
         inList = false;
       }
 
       if (trimmed) {
         html += `<p>${trimmed}</p>`;
       }
+
     }
+
   }
 
   if (inList) {
-    html += '</ul>';
+    html += "</ul>";
   }
 
-  return html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  return html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
 }
 
 async function sendToOrvex(message) {
-  const response = await fetch('/.netlify/functions/chat', {
-    method: 'POST',
+
+  const response = await fetch("/.netlify/functions/chat", {
+
+    method: "POST",
+
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json"
     },
+
     body: JSON.stringify({
       message,
       history: conversationHistory
     })
+
   });
 
   const raw = await response.text();
+
   const data = JSON.parse(raw);
 
   if (!response.ok) {
-    throw new Error(data.error || 'Something went wrong');
+    throw new Error(data.error || "Something went wrong");
   }
 
   return data.answer;
 }
 
 async function sendMessage() {
-  const input = document.getElementById('userInput');
-  const sendButton = document.getElementById('sendButton');
-  const chatBox = document.getElementById('chatBox');
+
+  if (!auth.currentUser) {
+    showAccount();
+    return;
+  }
+
+  const input = document.getElementById("userInput");
+  const sendButton = document.getElementById("sendButton");
+  const chatBox = document.getElementById("chatBox");
 
   const message = input.value.trim();
 
   if (!message || sendButton.disabled) return;
 
-  input.value = '';
-  sendButton.disabled = true;
-  sendButton.textContent = '...';
+  input.value = "";
 
-  const userMessage = document.createElement('p');
-  userMessage.className = 'user-message';
-  userMessage.textContent = 'You: ' + message;
+  sendButton.disabled = true;
+  sendButton.textContent = "...";
+
+  const userMessage = document.createElement("p");
+
+  userMessage.className = "user-message";
+  userMessage.textContent = "You: " + message;
+
   chatBox.appendChild(userMessage);
 
-  const thinking = document.createElement('p');
-  thinking.className = 'ai-message';
-  thinking.textContent = 'ORVEX AI is thinking...';
+  const thinking = document.createElement("p");
+
+  thinking.className = "ai-message";
+  thinking.textContent = "ORVEX AI is thinking...";
+
   chatBox.appendChild(thinking);
 
   chatBox.scrollTop = chatBox.scrollHeight;
 
   try {
+
     const answer = await sendToOrvex(message);
 
     conversationHistory.push({
-      role: 'user',
+      role: "user",
       content: message
     });
 
     conversationHistory.push({
-      role: 'assistant',
+      role: "assistant",
       content: answer
     });
 
@@ -549,96 +672,181 @@ async function sendMessage() {
     thinking.innerHTML = formatAnswer(answer);
 
   } catch (error) {
-    thinking.textContent = 'Error: ' + error.message;
+
+    thinking.textContent = "Error: " + error.message;
+
     input.value = message;
+
   }
 
   sendButton.disabled = false;
-  sendButton.textContent = 'Send';
+  sendButton.textContent = "Send";
+
   input.focus();
 
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-document.getElementById('userInput').addEventListener(
-  'keydown',
+document.getElementById("userInput").addEventListener(
+  "keydown",
   function(event) {
-    if (event.key === 'Enter') {
+
+    if (event.key === "Enter") {
       sendMessage();
     }
+
   }
 );
+
 </script>
 
 <!-- FIREBASE CONNECTION -->
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 
 <script>
+
 const firebaseConfig = {
-  apiKey: "AIzaSyD4oCtqtD8U1wnErSP10iu2sIr0XzaqrQs",
-  
+
+  apiKey: "PASTE_YOUR_EXISTING_FIREBASE_API_KEY_HERE",
+
   authDomain: "orvex-ai-f4bb3.firebaseapp.com",
+
   projectId: "orvex-ai-f4bb3",
+
   storageBucket: "orvex-ai-f4bb3.firebasestorage.app",
+
   messagingSenderId: "330308895814",
+
   appId: "1:330308895814:web:88c727af7b07ce5fd4b647",
+
   measurementId: "G-CZEGRQQ5R4"
+
 };
 
 firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
+
 const db = firebase.firestore();
 
 function signUp() {
+
   const email = document.getElementById("authEmail").value.trim();
+
   const password = document.getElementById("authPassword").value;
+
   const message = document.getElementById("authMessage");
 
   if (!email || !password) {
+
     message.textContent = "Please enter your email and password.";
+
     return;
   }
 
   if (password.length < 6) {
+
     message.textContent = "Password must contain at least 6 characters.";
+
     return;
   }
 
   message.textContent = "Creating your account...";
 
   auth.createUserWithEmailAndPassword(email, password)
+
     .then(() => {
+
       message.textContent = "Account created successfully!";
+
     })
+
     .catch(error => {
+
       message.textContent = error.message;
+
     });
+
 }
 
 function logIn() {
+
   const email = document.getElementById("authEmail").value.trim();
+
   const password = document.getElementById("authPassword").value;
+
   const message = document.getElementById("authMessage");
 
   if (!email || !password) {
+
     message.textContent = "Please enter your email and password.";
+
     return;
   }
 
   message.textContent = "Logging in...";
 
   auth.signInWithEmailAndPassword(email, password)
+
     .then(() => {
+
       message.textContent = "Welcome back!";
+
+    })
+
+    .catch(error => {
+
+      message.textContent = error.message;
+
+    });
+
+}
+
+function logOut() {
+
+  auth.signOut()
+    .then(() => {
+
+      conversationHistory = [];
+
+      showAccount();
+
+      document.getElementById("authMessage").textContent =
+        "You have logged out successfully.";
+
     })
     .catch(error => {
-      message.textContent = error.message;
+
+      alert(error.message);
+
     });
+
 }
+
+// CHECK LOGIN STATUS
+
+auth.onAuthStateChanged(user => {
+
+  if (user) {
+
+    document.getElementById("authSection").style.display = "none";
+
+    document.getElementById("logoutButton").style.display = "inline-block";
+
+    goHome();
+
+  } else {
+
+    showAccount();
+
+  }
+
+});
 
 </script>
 
