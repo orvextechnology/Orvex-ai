@@ -61,6 +61,11 @@ button {
   cursor: pointer;
 }
 
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .features {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -94,13 +99,28 @@ footer {
   padding: 20px;
 }
 
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chat-header h1 {
+  color: #a78bfa;
+  margin: 0;
+}
+
 #chatBox {
   background: #121b35;
   border: 1px solid #293658;
   border-radius: 14px;
   padding: 20px;
   min-height: 300px;
+  max-height: 550px;
   margin: 20px 0;
+  overflow-y: auto;
   overflow-wrap: anywhere;
 }
 
@@ -112,24 +132,26 @@ footer {
   border: 1px solid #293658;
   background: #121b35;
   color: white;
+  font-size: 16px;
 }
-  .ai-message {
+
+.ai-message {
   line-height: 1.9;
-    white-space: pre-wrap;
   font-size: 16px;
   color: #e5e7eb;
   margin: 20px 0;
+  white-space: normal;
 }
 
 .ai-message p {
-  margin: 0 0 18px;
+  margin: 0 0 15px;
 }
 
 .ai-message h1,
 .ai-message h2,
 .ai-message h3 {
   color: #a78bfa;
-  margin: 25px 0 12px;
+  margin: 20px 0 12px;
 }
 
 .ai-message ul,
@@ -143,14 +165,26 @@ footer {
 }
 
 .ai-message strong {
-  color: #ffffff;
+  color: white;
 }
 
 .ai-message hr {
   border: 0;
   border-top: 1px solid #293658;
   margin: 22px 0;
-  }
+}
+
+.user-message {
+  background: #202b49;
+  padding: 12px;
+  border-radius: 9px;
+  line-height: 1.6;
+  margin: 15px 0;
+}
+
+#sendButton {
+  min-width: 75px;
+}
 
 @media(max-width:600px) {
   h1 {
@@ -179,7 +213,7 @@ footer {
     Technology designed to empower everyone.
   </p>
 
-  <button onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">
+  <button onclick="openChat()">
     Explore ORVEX
   </button>
 </section>
@@ -191,17 +225,17 @@ footer {
     <p>Intelligent conversations and everyday assistance.</p>
   </div>
 
-  <div class="card">
+  <div class="card" onclick="openChat()" style="cursor:pointer">
     <h2>📚 Study Assistant</h2>
     <p>Learn difficult subjects with clear explanations.</p>
   </div>
 
-  <div class="card">
+  <div class="card" onclick="openChat()" style="cursor:pointer">
     <h2>🔬 Science Assistant</h2>
     <p>Explore science, technology and research.</p>
   </div>
 
-  <div class="card">
+  <div class="card" onclick="openChat()" style="cursor:pointer">
     <h2>🧮 Mathematics</h2>
     <p>Understand mathematical problems step by step.</p>
   </div>
@@ -210,11 +244,12 @@ footer {
 
 <section id="chatSection" style="display:none">
 
-  <h1 style="text-align:center;color:#a78bfa">
-    ORVEX AI
-  </h1>
+  <div class="chat-header">
+    <h1>ORVEX AI</h1>
+    <button onclick="newChat()">＋ New Chat</button>
+  </div>
 
-  <p style="text-align:center;color:#b8c0d9">
+  <p style="color:#b8c0d9">
     Your intelligent AI assistant.
   </p>
 
@@ -225,8 +260,12 @@ footer {
   </div>
 
   <div style="display:flex;gap:8px">
-    <input id="userInput" placeholder="Ask ORVEX anything...">
-    <button onclick="sendMessage()">Send</button>
+    <input
+      id="userInput"
+      placeholder="Ask ORVEX anything..."
+      autocomplete="off"
+    >
+    <button id="sendButton" onclick="sendMessage()">Send</button>
   </div>
 
   <button onclick="goHome()" style="margin-top:15px">
@@ -241,10 +280,17 @@ footer {
 
 <script>
 
+let conversationHistory = [];
+
+const STORAGE_KEY = "orvex_conversation";
+
 function openChat() {
   document.querySelector('.hero').style.display = 'none';
   document.querySelector('.features').style.display = 'none';
   document.getElementById('chatSection').style.display = 'block';
+
+  loadConversation();
+
   window.scrollTo(0, 0);
 }
 
@@ -252,10 +298,74 @@ function goHome() {
   document.querySelector('.hero').style.display = 'block';
   document.querySelector('.features').style.display = 'grid';
   document.getElementById('chatSection').style.display = 'none';
+
   window.scrollTo(0, 0);
 }
+
+function saveConversation() {
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(conversationHistory)
+  );
+}
+
+function loadConversation() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+
+    if (saved) {
+      conversationHistory = JSON.parse(saved);
+    }
+  } catch {
+    conversationHistory = [];
+  }
+
+  renderConversation();
+}
+
+function newChat() {
+  conversationHistory = [];
+
+  localStorage.removeItem(STORAGE_KEY);
+
+  renderConversation();
+
+  document.getElementById('userInput').focus();
+}
+
+function renderConversation() {
+  const chatBox = document.getElementById('chatBox');
+
+  chatBox.innerHTML = '';
+
+  if (conversationHistory.length === 0) {
+    chatBox.innerHTML = `
+      <p style="color:#a78bfa">
+        Hello! I'm ORVEX AI. How can I help you today?
+      </p>
+    `;
+    return;
+  }
+
+  conversationHistory.forEach(item => {
+    if (item.role === 'user') {
+      const p = document.createElement('p');
+      p.className = 'user-message';
+      p.textContent = 'You: ' + item.content;
+      chatBox.appendChild(p);
+    } else {
+      const div = document.createElement('div');
+      div.className = 'ai-message';
+      div.innerHTML = formatAnswer(item.content);
+      chatBox.appendChild(div);
+    }
+  });
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
 function formatAnswer(text) {
-  const escapeHTML = (str) => str.replace(/[&<>"']/g, char => ({
+  const escapeHTML = str => str.replace(/[&<>"']/g, char => ({
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',
@@ -264,6 +374,7 @@ function formatAnswer(text) {
   }[char]));
 
   const lines = escapeHTML(text).split('\n');
+
   let html = '';
   let inList = false;
 
@@ -271,14 +382,30 @@ function formatAnswer(text) {
     const trimmed = line.trim();
 
     if (trimmed.startsWith('### ')) {
+      if (inList) {
+        html += '</ul>';
+        inList = false;
+      }
       html += `<h3>${trimmed.slice(4)}</h3>`;
     } else if (trimmed.startsWith('## ')) {
+      if (inList) {
+        html += '</ul>';
+        inList = false;
+      }
       html += `<h2>${trimmed.slice(3)}</h2>`;
     } else if (trimmed.startsWith('# ')) {
+      if (inList) {
+        html += '</ul>';
+        inList = false;
+      }
       html += `<h1>${trimmed.slice(2)}</h1>`;
     } else if (trimmed.startsWith('---')) {
+      if (inList) {
+        html += '</ul>';
+        inList = false;
+      }
       html += '<hr>';
-    } else if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+    } else if (/^[-*] /.test(trimmed)) {
       if (!inList) {
         html += '<ul>';
         inList = true;
@@ -289,73 +416,19 @@ function formatAnswer(text) {
         html += '</ul>';
         inList = false;
       }
+
       if (trimmed) {
         html += `<p>${trimmed}</p>`;
       }
     }
   }
 
-  if (inList) html += '</ul>';
+  if (inList) {
+    html += '</ul>';
+  }
 
   return html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  }
+}
+
 async function sendToOrvex(message) {
-
-  const response = await fetch('/.netlify/functions/chat', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ message })
-  });
-
-  const raw = await response.text();
-console.log("Server response:", raw);
-const data = JSON.parse(raw);
-
-  if (!response.ok) {
-    throw new Error(data.error || 'Something went wrong');
-  }
-
-  return data.answer;
-}
-
-async function sendMessage() {
-
-  const input = document.getElementById('userInput');
-  const chatBox = document.getElementById('chatBox');
-  const message = input.value.trim();
-
-  if (!message) return;
-
-  const userMessage = document.createElement('p');
-  userMessage.textContent = 'You: ' + message;
-  chatBox.appendChild(userMessage);
-
-  input.value = '';
-
-  const thinking = document.createElement('p');
-  thinking.textContent = 'ORVEX AI is thinking...';
-  chatBox.appendChild(thinking);
-
-  try {
-    const answer = await sendToOrvex(message);
-    thinking.className = 'ai-message';
-thinking.innerHTML = formatAnswer('ORVEX AI: ' + answer);
-  } catch (error) {
-    thinking.textContent = 'Error: ' + error.message;
-  }
-
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-document.getElementById('userInput').addEventListener('keydown', function(event) {
-  if (event.key === 'Enter') {
-    sendMessage();
-  }
-});
-
-</script>
-
-</body>
-</html>
+  const response = await
