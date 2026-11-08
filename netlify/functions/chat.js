@@ -92,7 +92,7 @@ export default async (req) => {
     let answer;
 
     try {
-      answer = await askGemini("gemini-3.8-flash");
+      answer = await askGemini("gemini-3.5-flash-lite");
     } catch (error) {
       const retryable = [429, 500, 502, 503, 504]
         .includes(error.status);
