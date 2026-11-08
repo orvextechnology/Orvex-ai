@@ -26,16 +26,34 @@ export default async (req) => {
       throw new Error("Gemini API key is missing.");
     }
 
-    const conversationHistory = Array.isArray(history)
-      ? history.slice(-12).map(item => {
-          const role = item.role === "assistant" ? "ORVEX AI" : "User";
+    const previousMessages = Array.isArray(history)
+      ? history.slice(-20).map(item => {
+          const role =
+            item.role === "assistant" ? "ORVEX AI" : "User";
+
           return `${role}: ${String(item.content || "")}`;
         }).join("\n\n")
       : "";
 
-    const prompt = conversationHistory
-      ? `Continue this conversation:\n\n${conversationHistory}\n\nUser: ${message}`
-      : message;
+    const prompt = `
+You are ORVEX AI, an intelligent conversational assistant.
+
+IMPORTANT CONVERSATION MEMORY RULES:
+- Read the entire conversation history below.
+- Remember what the user said earlier in this conversation.
+- When asked what the user previously asked, identify their actual earlier question.
+- Never claim this is the first message if previous messages are provided.
+- Use previous messages to understand follow-up questions.
+- Answer naturally and accurately.
+
+PREVIOUS CONVERSATION:
+${previousMessages || "There are no previous messages."}
+
+CURRENT USER MESSAGE:
+${message}
+
+ORVEX AI RESPONSE:
+`;
 
     const response = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/interactions",
@@ -55,7 +73,9 @@ export default async (req) => {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error?.message || "Gemini request failed.");
+      throw new Error(
+        data.error?.message || "Gemini request failed."
+      );
     }
 
     const answer =
