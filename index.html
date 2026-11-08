@@ -326,41 +326,34 @@ function renderConversation() {
   $("messages").scrollTop = $("messages").scrollHeight;
 }
 
-function addMessage(role, content, imageData = null, imageMime = "image/png") {
-  const box = document.createElement("div");
-  box.className = `message ${role === "user" ? "user" : "assistant"}`;
-
-  const label = document.createElement("div");
-  label.className = "role";
-  label.textContent = role === "user" ? "YOU" : "ORVEX AI";
-
-  const text = document.createElement("div");
-  text.textContent = content || "";
-
-  box.append(label, text);
-
-  if (imageData) {
-    const img = document.createElement("img");
-    img.src = `data:${imageMime};base64,${imageData}`;
-    img.alt = "Image from ORVEX AI";
-    box.appendChild(img);
-  }
-
-  if (role === "assistant" && content) {
-    const actions = document.createElement("div");
-    actions.className = "message-actions";
-
-    const read = document.createElement("button");
-    read.textContent = "🔊 Read aloud";
-    read.onclick = () => speakText(content);
-
-    actions.appendChild(read);
-    box.appendChild(actions);
-  }
-
-  $("messages").appendChild(box);
-  $("messages").scrollTop = $("messages").scrollHeight;
+.formatted-answer {
+  line-height: 1.85;
+  font-size: 15px;
 }
+
+.formatted-answer p {
+  margin: 0 0 15px;
+}
+
+.formatted-answer h3 {
+  margin: 20px 0 10px;
+  color: #a78bfa;
+  font-size: 17px;
+}
+
+.formatted-answer ul,
+.formatted-answer ol {
+  padding-left: 24px;
+  margin: 10px 0 18px;
+}
+
+.formatted-answer li {
+  margin-bottom: 9px;
+}
+
+.formatted-answer strong {
+  color: #ffffff;
+  }
 
 function addSystemNote(text) {
   const note = document.createElement("div");
