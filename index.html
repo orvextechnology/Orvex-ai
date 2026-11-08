@@ -254,7 +254,51 @@ function goHome() {
   document.getElementById('chatSection').style.display = 'none';
   window.scrollTo(0, 0);
 }
+function formatAnswer(text) {
+  const escapeHTML = (str) => str.replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[char]));
 
+  const lines = escapeHTML(text).split('\n');
+  let html = '';
+  let inList = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('### ')) {
+      html += `<h3>${trimmed.slice(4)}</h3>`;
+    } else if (trimmed.startsWith('## ')) {
+      html += `<h2>${trimmed.slice(3)}</h2>`;
+    } else if (trimmed.startsWith('# ')) {
+      html += `<h1>${trimmed.slice(2)}</h1>`;
+    } else if (trimmed.startsWith('---')) {
+      html += '<hr>';
+    } else if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+      if (!inList) {
+        html += '<ul>';
+        inList = true;
+      }
+      html += `<li>${trimmed.slice(2)}</li>`;
+    } else {
+      if (inList) {
+        html += '</ul>';
+        inList = false;
+      }
+      if (trimmed) {
+        html += `<p>${trimmed}</p>`;
+      }
+    }
+  }
+
+  if (inList) html += '</ul>';
+
+  return html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  }
 async function sendToOrvex(message) {
 
   const response = await fetch('/.netlify/functions/chat', {
