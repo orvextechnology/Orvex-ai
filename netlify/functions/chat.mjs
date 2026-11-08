@@ -12,6 +12,7 @@ export default async (req) => {
 
   try {
     const { message, history = [] } = await req.json();
+    console.log("ORVEX HISTORY RECEIVED:", history.length);
 
     if (!message || typeof message !== "string") {
       return new Response(
