@@ -1,20 +1,22 @@
 export default async (req) => {
+  const headers = {
+    "Content-Type": "application/json"
+  };
+
   if (req.method !== "POST") {
-    return new Response("Method not allowed", {
-      status: 405
-    });
+    return new Response(
+      JSON.stringify({ error: "Method not allowed." }),
+      { status: 405, headers }
+    );
   }
 
   try {
     const { message } = await req.json();
 
-    if (!message) {
+    if (!message || typeof message !== "string") {
       return new Response(
         JSON.stringify({ error: "Please enter a message." }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" }
-        }
+        { status: 400, headers }
       );
     }
 
@@ -34,31 +36,51 @@ export default async (req) => {
             "x-goog-api-key": apiKey
           },
           body: JSON.stringify({
-            model: model,
+            model,
             input: message
-          })
+          }),
+          signal: AbortSignal.timeout(10000)
         }
       );
 
-      const data = await response.json();
+      const raw = await response.text();
 
-      if (!response.ok) {
+      let data;
+
+      try {
+        data = JSON.parse(raw);
+      } catch {
         const error = new Error(
-          data.error?.message || "AI request failed."
+          `Gemini returned an invalid response (HTTP ${response.status}).`
         );
         error.status = response.status;
         throw error;
       }
 
-      const answer = data.steps
-        ?.filter(step => step.type === "model_output")
-        .flatMap(step => step.content || [])
-        .filter(item => item.type === "text")
-        .map(item => item.text)
-        .join("");
+      if (!response.ok) {
+        const error = new Error(
+          data.error?.message ||
+          data.message ||
+          `Gemini request failed (HTTP ${response.status}).`
+        );
 
-      if (!answer) {
-        throw new Error("The AI returned an empty response.");
+        error.status = response.status;
+        throw error;
+      }
+
+      const answer =
+        data.steps
+          ?.filter(step => step.type === "model_output")
+          .flatMap(step => step.content || [])
+          .filter(item => item.type === "text")
+          .map(item => item.text)
+          .join("") ||
+        data.output_text ||
+        data.outputs?.map(item => item.text || "").join("") ||
+        "";
+
+      if (!answer.trim()) {
+        throw new Error("Gemini returned an empty answer.");
       }
 
       return answer;
@@ -68,8 +90,13 @@ export default async (req) => {
 
     try {
       answer = await askGemini("gemini-3.8-flash");
+
     } catch (error) {
-      if (![429, 500, 503].includes(error.status)) {
+      const retryable = [
+        429, 500, 502, 503, 504
+      ].includes(error.status);
+
+      if (!retryable && error.name !== "TimeoutError") {
         throw error;
       }
 
@@ -78,18 +105,15 @@ export default async (req) => {
 
     return new Response(
       JSON.stringify({ answer }),
-      {
-        headers: { "Content-Type": "application/json" }
-      }
+      { status: 200, headers }
     );
 
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" }
-      }
+      JSON.stringify({
+        error: error.message || "An unexpected error occurred."
+      }),
+      { status: 500, headers }
     );
   }
 };
