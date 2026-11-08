@@ -111,6 +111,7 @@ footer {
   color: #a78bfa;
   margin: 0;
 }
+
 #chatHistory {
   background: #121b35;
   border: 1px solid #293658;
@@ -127,7 +128,8 @@ footer {
   background: #202b49;
   font-size: 14px;
   padding: 12px;
-    }
+}
+
 #chatBox {
   background: #121b35;
   border: 1px solid #293658;
@@ -251,9 +253,15 @@ footer {
 
 <header>
   <div class="logo">ORVEX AI</div>
+
   <div>
     <span>ORVEX LABS</span>
-    <button id="logoutButton" onclick="logOut()" style="margin-left:10px">
+
+    <button
+      id="logoutButton"
+      onclick="logOut()"
+      style="margin-left:10px"
+    >
       Log Out
     </button>
   </div>
@@ -300,29 +308,42 @@ footer {
 
 </section>
 
-<!-- AI CHAT -->
+<!-- CHAT SECTION -->
 
 <section id="chatSection" style="display:none">
 
   <div class="chat-header">
+
     <h1>ORVEX AI</h1>
-    <button onclick="newChat()">＋ New Chat</button>
+
+    <button onclick="newChat()">
+      ＋ New Chat
+    </button>
+
   </div>
 
   <p style="color:#b8c0d9">
     Your intelligent AI assistant.
   </p>
-<div id="chatHistory">
-  <h3>My Conversations</h3>
-  <div id="historyList"></div>
-</div>
+
+  <div id="chatHistory">
+
+    <h3>My Conversations</h3>
+
+    <div id="historyList"></div>
+
+  </div>
+
   <div id="chatBox">
+
     <p style="color:#a78bfa">
       Hello! I'm ORVEX AI. How can I help you today?
     </p>
+
   </div>
 
   <div style="display:flex;gap:8px">
+
     <input
       id="userInput"
       placeholder="Ask ORVEX anything..."
@@ -332,6 +353,7 @@ footer {
     <button id="sendButton" onclick="sendMessage()">
       Send
     </button>
+
   </div>
 
   <button onclick="goHome()" style="margin-top:15px">
@@ -340,7 +362,7 @@ footer {
 
 </section>
 
-<!-- ACCOUNT PAGE -->
+<!-- ACCOUNT SECTION -->
 
 <div id="authSection">
 
@@ -375,469 +397,10 @@ footer {
 </div>
 
 <footer id="footerSection" style="display:none">
+
   © 2026 ORVEX LABS. Building intelligence for everyone.
+
 </footer>
-
-<!-- MAIN CHAT JAVASCRIPT -->
-
-<script>
-
-let conversationHistory = [];
-let currentChatId = null;
-
-const STORAGE_KEY = "orvex_conversation";
-
-function openChat() {
-
-  if (!auth.currentUser) {
-    showAccount();
-    return;
-  }
-
-  document.getElementById("heroSection").style.display = "none";
-  document.getElementById("features").style.display = "none";
-  document.getElementById("footerSection").style.display = "none";
-
-  document.getElementById("chatSection").style.display = "block";
-
-  loadConversation();
-
-  window.scrollTo(0, 0);
-}
-
-function goHome() {
-
-  if (!auth.currentUser) {
-    showAccount();
-    return;
-  }
-
-  document.getElementById("heroSection").style.display = "block";
-  document.getElementById("features").style.display = "grid";
-  document.getElementById("footerSection").style.display = "block";
-
-  document.getElementById("chatSection").style.display = "none";
-
-  window.scrollTo(0, 0);
-}
-
-function showAccount() {
-
-  document.getElementById("authSection").style.display = "block";
-
-  document.getElementById("heroSection").style.display = "none";
-  document.getElementById("features").style.display = "none";
-  document.getElementById("chatSection").style.display = "none";
-  document.getElementById("footerSection").style.display = "none";
-
-  document.getElementById("logoutButton").style.display = "none";
-
-  window.scrollTo(0, 0);
-}
-
-async function saveConversation() {
-
-  if (!auth.currentUser) return;
-
-  if (!currentChatId) {
-    currentChatId = db.collection("users")
-      .doc(auth.currentUser.uid)
-      .collection("chats")
-      .doc().id;
-  }
-
-  const firstMessage = conversationHistory.find(
-    item => item.role === "user"
-  );
-
-  try {
-    await db.collection("users")
-      .doc(auth.currentUser.uid)
-      .collection("chats")
-      .doc(currentChatId)
-      .set({
-        title: firstMessage
-          ? firstMessage.content.substring(0, 50)
-          : "New Chat",
-        messages: conversationHistory,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-  } catch (error) {
-    console.error("Chat saving failed:", error);
-  }
-                          }
-
-  if (!auth.currentUser) return;
-
-  localStorage.setItem(
-    STORAGE_KEY + "_" + auth.currentUser.uid,
-    JSON.stringify(conversationHistory)
-  );
-}
-async function loadConversation() {
-
-  currentChatId = null;
-  conversationHistory = [];
-
-  renderConversation();
-
-  await loadChatHistory();
-}
-
-async function loadChatHistory() {
-
-  if (!auth.currentUser) return;
-
-  const historyList = document.getElementById("historyList");
-
-  historyList.innerHTML = "Loading conversations...";
-
-  try {
-
-    const snapshot = await db.collection("users")
-      .doc(auth.currentUser.uid)
-      .collection("chats")
-      .orderBy("updatedAt", "desc")
-      .get();
-
-    historyList.innerHTML = "";
-
-    if (snapshot.empty) {
-      historyList.innerHTML = "<p>No saved conversations yet.</p>";
-      return;
-    }
-
-    snapshot.forEach(doc => {
-
-      const button = document.createElement("button");
-
-      button.textContent = doc.data().title || "New Chat";
-
-      button.onclick = () => openSavedChat(doc.id);
-
-      historyList.appendChild(button);
-
-    });
-
-  } catch (error) {
-
-    historyList.textContent = "Could not load conversations.";
-
-    console.error(error);
-
-  }
-}
-
-async function openSavedChat(chatId) {
-
-  if (!auth.currentUser) return;
-
-  try {
-
-    const doc = await db.collection("users")
-      .doc(auth.currentUser.uid)
-      .collection("chats")
-      .doc(chatId)
-      .get();
-
-    if (!doc.exists) return;
-
-    currentChatId = chatId;
-
-    conversationHistory = doc.data().messages || [];
-
-    renderConversation();
-
-  } catch (error) {
-
-    alert("Could not open this conversation.");
-
-  }
-  }
-
-  try {
-
-    const saved = localStorage.getItem(
-      STORAGE_KEY + "_" + auth.currentUser.uid
-    );
-
-    conversationHistory = saved ? JSON.parse(saved) : [];
-
-  } catch {
-
-    conversationHistory = [];
-
-  }
-
-  renderConversation();
-}
-
-function newChat() {
-
-  if (!auth.currentUser) return;
-
-  conversationHistory = [];
-  currentChatId = null;
-
-  renderConversation();
-
-  document.getElementById("userInput").focus();
-  }
-
-  if (!auth.currentUser) return;
-
-  conversationHistory = [];
-
-  localStorage.removeItem(
-    STORAGE_KEY + "_" + auth.currentUser.uid
-  );
-
-  renderConversation();
-
-  document.getElementById("userInput").focus();
-}
-
-function renderConversation() {
-
-  const chatBox = document.getElementById("chatBox");
-
-  chatBox.innerHTML = "";
-
-  if (conversationHistory.length === 0) {
-
-    chatBox.innerHTML = `
-      <p style="color:#a78bfa">
-        Hello! I'm ORVEX AI. How can I help you today?
-      </p>
-    `;
-
-    return;
-  }
-
-  conversationHistory.forEach(item => {
-
-    if (item.role === "user") {
-
-      const p = document.createElement("p");
-
-      p.className = "user-message";
-      p.textContent = "You: " + item.content;
-
-      chatBox.appendChild(p);
-
-    } else {
-
-      const div = document.createElement("div");
-
-      div.className = "ai-message";
-      div.innerHTML = formatAnswer(item.content);
-
-      chatBox.appendChild(div);
-
-    }
-
-  });
-
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-function formatAnswer(text) {
-
-  const escapeHTML = str => str.replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
-
-  const lines = escapeHTML(text).split("\n");
-
-  let html = "";
-  let inList = false;
-
-  for (const line of lines) {
-
-    const trimmed = line.trim();
-
-    if (trimmed.startsWith("### ")) {
-
-      if (inList) {
-        html += "</ul>";
-        inList = false;
-      }
-
-      html += `<h3>${trimmed.slice(4)}</h3>`;
-
-    } else if (trimmed.startsWith("## ")) {
-
-      if (inList) {
-        html += "</ul>";
-        inList = false;
-      }
-
-      html += `<h2>${trimmed.slice(3)}</h2>`;
-
-    } else if (trimmed.startsWith("# ")) {
-
-      if (inList) {
-        html += "</ul>";
-        inList = false;
-      }
-
-      html += `<h1>${trimmed.slice(2)}</h1>`;
-
-    } else if (trimmed.startsWith("---")) {
-
-      if (inList) {
-        html += "</ul>";
-        inList = false;
-      }
-
-      html += "<hr>";
-
-    } else if (/^[-*] /.test(trimmed)) {
-
-      if (!inList) {
-        html += "<ul>";
-        inList = true;
-      }
-
-      html += `<li>${trimmed.slice(2)}</li>`;
-
-    } else {
-
-      if (inList) {
-        html += "</ul>";
-        inList = false;
-      }
-
-      if (trimmed) {
-        html += `<p>${trimmed}</p>`;
-      }
-
-    }
-
-  }
-
-  if (inList) {
-    html += "</ul>";
-  }
-
-  return html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-}
-
-async function sendToOrvex(message) {
-
-  const response = await fetch("/.netlify/functions/chat", {
-
-    method: "POST",
-
-    headers: {
-      "Content-Type": "application/json"
-    },
-
-    body: JSON.stringify({
-      message,
-      history: conversationHistory
-    })
-
-  });
-
-  const raw = await response.text();
-
-  const data = JSON.parse(raw);
-
-  if (!response.ok) {
-    throw new Error(data.error || "Something went wrong");
-  }
-
-  return data.answer;
-}
-
-async function sendMessage() {
-
-  if (!auth.currentUser) {
-    showAccount();
-    return;
-  }
-
-  const input = document.getElementById("userInput");
-  const sendButton = document.getElementById("sendButton");
-  const chatBox = document.getElementById("chatBox");
-
-  const message = input.value.trim();
-
-  if (!message || sendButton.disabled) return;
-
-  input.value = "";
-
-  sendButton.disabled = true;
-  sendButton.textContent = "...";
-
-  const userMessage = document.createElement("p");
-
-  userMessage.className = "user-message";
-  userMessage.textContent = "You: " + message;
-
-  chatBox.appendChild(userMessage);
-
-  const thinking = document.createElement("p");
-
-  thinking.className = "ai-message";
-  thinking.textContent = "ORVEX AI is thinking...";
-
-  chatBox.appendChild(thinking);
-
-  chatBox.scrollTop = chatBox.scrollHeight;
-
-  try {
-
-    const answer = await sendToOrvex(message);
-
-    conversationHistory.push({
-      role: "user",
-      content: message
-    });
-
-    conversationHistory.push({
-      role: "assistant",
-      content: answer
-    });
-
-    saveConversation();
-
-    thinking.innerHTML = formatAnswer(answer);
-
-  } catch (error) {
-
-    thinking.textContent = "Error: " + error.message;
-
-    input.value = message;
-
-  }
-
-  sendButton.disabled = false;
-  sendButton.textContent = "Send";
-
-  input.focus();
-
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-document.getElementById("userInput").addEventListener(
-  "keydown",
-  function(event) {
-
-    if (event.key === "Enter") {
-      sendMessage();
-    }
-
-  }
-);
-
-</script>
 
 <!-- FIREBASE CONNECTION -->
 
@@ -852,7 +415,6 @@ document.getElementById("userInput").addEventListener(
 const firebaseConfig = {
 
   apiKey: "AIzaSyD4oCtqtD8U1wnErSP10iu2sIr0XzaqrQs",
-  
 
   authDomain: "orvex-ai-f4bb3.firebaseapp.com",
 
@@ -874,7 +436,16 @@ const auth = firebase.auth();
 
 const db = firebase.firestore();
 
-function signUp() {
+let conversationHistory = [];
+
+let currentChatId = null;
+
+let isSending = false;
+
+
+// ACCOUNT CREATION
+
+async function signUp() {
 
   const email = document.getElementById("authEmail").value.trim();
 
@@ -887,6 +458,7 @@ function signUp() {
     message.textContent = "Please enter your email and password.";
 
     return;
+
   }
 
   if (password.length < 6) {
@@ -894,27 +466,29 @@ function signUp() {
     message.textContent = "Password must contain at least 6 characters.";
 
     return;
+
   }
 
   message.textContent = "Creating your account...";
 
-  auth.createUserWithEmailAndPassword(email, password)
+  try {
 
-    .then(() => {
+    await auth.createUserWithEmailAndPassword(email, password);
 
-      message.textContent = "Account created successfully!";
+    message.textContent = "Account created successfully!";
 
-    })
+  } catch (error) {
 
-    .catch(error => {
+    message.textContent = error.message;
 
-      message.textContent = error.message;
-
-    });
+  }
 
 }
 
-function logIn() {
+
+// LOGIN
+
+async function logIn() {
 
   const email = document.getElementById("authEmail").value.trim();
 
@@ -927,46 +501,672 @@ function logIn() {
     message.textContent = "Please enter your email and password.";
 
     return;
+
   }
 
   message.textContent = "Logging in...";
 
-  auth.signInWithEmailAndPassword(email, password)
+  try {
 
-    .then(() => {
+    await auth.signInWithEmailAndPassword(email, password);
 
-      message.textContent = "Welcome back!";
+    message.textContent = "Welcome back!";
 
-    })
+  } catch (error) {
 
-    .catch(error => {
+    message.textContent = error.message;
 
-      message.textContent = error.message;
-
-    });
+  }
 
 }
 
-function logOut() {
 
-  auth.signOut()
-    .then(() => {
+// LOGOUT
 
-      conversationHistory = [];
+async function logOut() {
 
-      showAccount();
+  try {
 
-      document.getElementById("authMessage").textContent =
-        "You have logged out successfully.";
+    await auth.signOut();
 
-    })
-    .catch(error => {
+    conversationHistory = [];
 
-      alert(error.message);
+    currentChatId = null;
+
+    showAccount();
+
+    document.getElementById("authMessage").textContent =
+      "You have logged out successfully.";
+
+  } catch (error) {
+
+    alert(error.message);
+
+  }
+
+}
+
+
+// ACCOUNT SCREEN
+
+function showAccount() {
+
+  document.getElementById("authSection").style.display = "block";
+
+  document.getElementById("heroSection").style.display = "none";
+
+  document.getElementById("features").style.display = "none";
+
+  document.getElementById("chatSection").style.display = "none";
+
+  document.getElementById("footerSection").style.display = "none";
+
+  document.getElementById("logoutButton").style.display = "none";
+
+}
+
+
+// HOME SCREEN
+
+function goHome() {
+
+  if (!auth.currentUser) {
+
+    showAccount();
+
+    return;
+
+  }
+
+  document.getElementById("authSection").style.display = "none";
+
+  document.getElementById("heroSection").style.display = "block";
+
+  document.getElementById("features").style.display = "grid";
+
+  document.getElementById("footerSection").style.display = "block";
+
+  document.getElementById("chatSection").style.display = "none";
+
+  document.getElementById("logoutButton").style.display = "inline-block";
+
+  window.scrollTo(0, 0);
+
+}
+
+
+// OPEN CHAT
+
+async function openChat() {
+
+  if (!auth.currentUser) {
+
+    showAccount();
+
+    return;
+
+  }
+
+  document.getElementById("heroSection").style.display = "none";
+
+  document.getElementById("features").style.display = "none";
+
+  document.getElementById("footerSection").style.display = "none";
+
+  document.getElementById("chatSection").style.display = "block";
+
+  await loadConversation();
+
+  window.scrollTo(0, 0);
+
+}
+
+
+// SAVE CONVERSATION
+
+async function saveConversation() {
+
+  if (!auth.currentUser) return;
+
+  if (conversationHistory.length === 0) return;
+
+  if (!currentChatId) {
+
+    currentChatId = db.collection("users")
+
+      .doc(auth.currentUser.uid)
+
+      .collection("chats")
+
+      .doc().id;
+
+  }
+
+  const firstMessage = conversationHistory.find(
+
+    item => item.role === "user"
+
+  );
+
+  try {
+
+    await db.collection("users")
+
+      .doc(auth.currentUser.uid)
+
+      .collection("chats")
+
+      .doc(currentChatId)
+
+      .set({
+
+        title: firstMessage
+
+          ? firstMessage.content.substring(0, 50)
+
+          : "New Chat",
+
+        messages: conversationHistory,
+
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+
+      });
+
+    await loadChatHistory();
+
+  } catch (error) {
+
+    console.error("Chat saving failed:", error);
+
+  }
+
+}
+
+
+// LOAD CONVERSATION LIST
+
+async function loadConversation() {
+
+  currentChatId = null;
+
+  conversationHistory = [];
+
+  renderConversation();
+
+  await loadChatHistory();
+
+}
+
+
+// LOAD SAVED CHATS
+
+async function loadChatHistory() {
+
+  if (!auth.currentUser) return;
+
+  const historyList = document.getElementById("historyList");
+
+  historyList.innerHTML = "Loading conversations...";
+
+  try {
+
+    const snapshot = await db.collection("users")
+
+      .doc(auth.currentUser.uid)
+
+      .collection("chats")
+
+      .orderBy("updatedAt", "desc")
+
+      .get();
+
+    historyList.innerHTML = "";
+
+    if (snapshot.empty) {
+
+      historyList.innerHTML = "<p>No saved conversations yet.</p>";
+
+      return;
+
+    }
+
+    snapshot.forEach(doc => {
+
+      const button = document.createElement("button");
+
+      button.type = "button";
+
+      button.textContent = doc.data().title || "New Chat";
+
+      button.onclick = () => openSavedChat(doc.id);
+
+      historyList.appendChild(button);
 
     });
 
+  } catch (error) {
+
+    historyList.textContent = "Could not load conversations.";
+
+    console.error("History loading failed:", error);
+
+  }
+
 }
+
+
+// OPEN SAVED CHAT
+
+async function openSavedChat(chatId) {
+
+  if (!auth.currentUser) return;
+
+  try {
+
+    const doc = await db.collection("users")
+
+      .doc(auth.currentUser.uid)
+
+      .collection("chats")
+
+      .doc(chatId)
+
+      .get();
+
+    if (!doc.exists) {
+
+      alert("This conversation could not be found.");
+
+      return;
+
+    }
+
+    currentChatId = chatId;
+
+    const messages = doc.data().messages;
+
+    conversationHistory = Array.isArray(messages) ? messages : [];
+
+    renderConversation();
+
+    window.scrollTo(0, 0);
+
+  } catch (error) {
+
+    alert("Could not open this conversation.");
+
+    console.error(error);
+
+  }
+
+}
+
+
+// NEW CHAT
+
+function newChat() {
+
+  if (!auth.currentUser) return;
+
+  conversationHistory = [];
+
+  currentChatId = null;
+
+  renderConversation();
+
+  document.getElementById("userInput").focus();
+
+}
+
+
+// DISPLAY MESSAGES
+
+function renderConversation() {
+
+  const chatBox = document.getElementById("chatBox");
+
+  chatBox.innerHTML = "";
+
+  if (conversationHistory.length === 0) {
+
+    chatBox.innerHTML = `
+
+      <p style="color:#a78bfa">
+
+        Hello! I'm ORVEX AI. How can I help you today?
+
+      </p>
+
+    `;
+
+    return;
+
+  }
+
+  conversationHistory.forEach(item => {
+
+    if (item.role === "user") {
+
+      const p = document.createElement("p");
+
+      p.className = "user-message";
+
+      p.textContent = "You: " + item.content;
+
+      chatBox.appendChild(p);
+
+    } else {
+
+      const div = document.createElement("div");
+
+      div.className = "ai-message";
+
+      div.innerHTML = formatAnswer(item.content);
+
+      chatBox.appendChild(div);
+
+    }
+
+  });
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+}
+
+
+// FORMAT AI ANSWERS
+
+function formatAnswer(text) {
+
+  const escapeHTML = str => str.replace(/[&<>"']/g, char => ({
+
+    "&": "&amp;",
+
+    "<": "&lt;",
+
+    ">": "&gt;",
+
+    '"': "&quot;",
+
+    "'": "&#39;"
+
+  }[char]));
+
+  const lines = escapeHTML(String(text)).split("\n");
+
+  let html = "";
+
+  let inList = false;
+
+  for (const line of lines) {
+
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith("### ")) {
+
+      if (inList) {
+
+        html += "</ul>";
+
+        inList = false;
+
+      }
+
+      html += `<h3>${trimmed.slice(4)}</h3>`;
+
+    } else if (trimmed.startsWith("## ")) {
+
+      if (inList) {
+
+        html += "</ul>";
+
+        inList = false;
+
+      }
+
+      html += `<h2>${trimmed.slice(3)}</h2>`;
+
+    } else if (trimmed.startsWith("# ")) {
+
+      if (inList) {
+
+        html += "</ul>";
+
+        inList = false;
+
+      }
+
+      html += `<h1>${trimmed.slice(2)}</h1>`;
+
+    } else if (trimmed.startsWith("---")) {
+
+      if (inList) {
+
+        html += "</ul>";
+
+        inList = false;
+
+      }
+
+      html += "<hr>";
+
+    } else if (/^[-*] /.test(trimmed)) {
+
+      if (!inList) {
+
+        html += "<ul>";
+
+        inList = true;
+
+      }
+
+      html += `<li>${trimmed.slice(2)}</li>`;
+
+    } else {
+
+      if (inList) {
+
+        html += "</ul>";
+
+        inList = false;
+
+      }
+
+      if (trimmed) {
+
+        html += `<p>${trimmed}</p>`;
+
+      }
+
+    }
+
+  }
+
+  if (inList) {
+
+    html += "</ul>";
+
+  }
+
+  return html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+}
+
+
+// SEND MESSAGE TO BACKEND
+
+async function sendToOrvex(message) {
+
+  const response = await fetch("/.netlify/functions/chat", {
+
+    method: "POST",
+
+    headers: {
+
+      "Content-Type": "application/json"
+
+    },
+
+    body: JSON.stringify({
+
+      message: message,
+
+      history: conversationHistory
+
+    })
+
+  });
+
+  const raw = await response.text();
+
+  let data;
+
+  try {
+
+    data = JSON.parse(raw);
+
+  } catch {
+
+    throw new Error("The AI server returned an invalid response.");
+
+  }
+
+  if (!response.ok) {
+
+    throw new Error(data.error || "Something went wrong.");
+
+  }
+
+  if (!data.answer) {
+
+    throw new Error("ORVEX did not return an answer.");
+
+  }
+
+  return data.answer;
+
+}
+
+
+// SEND MESSAGE
+
+async function sendMessage() {
+
+  if (!auth.currentUser) {
+
+    showAccount();
+
+    return;
+
+  }
+
+  if (isSending) return;
+
+  const input = document.getElementById("userInput");
+
+  const sendButton = document.getElementById("sendButton");
+
+  const chatBox = document.getElementById("chatBox");
+
+  const message = input.value.trim();
+
+  if (!message) return;
+
+  isSending = true;
+
+  input.value = "";
+
+  sendButton.disabled = true;
+
+  sendButton.textContent = "...";
+
+  const userMessage = document.createElement("p");
+
+  userMessage.className = "user-message";
+
+  userMessage.textContent = "You: " + message;
+
+  chatBox.appendChild(userMessage);
+
+  const thinking = document.createElement("p");
+
+  thinking.className = "ai-message";
+
+  thinking.textContent = "ORVEX AI is thinking...";
+
+  chatBox.appendChild(thinking);
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  try {
+
+    const answer = await sendToOrvex(message);
+
+    conversationHistory.push({
+
+      role: "user",
+
+      content: message
+
+    });
+
+    conversationHistory.push({
+
+      role: "assistant",
+
+      content: answer
+
+    });
+
+    thinking.innerHTML = formatAnswer(answer);
+
+    await saveConversation();
+
+  } catch (error) {
+
+    thinking.textContent = "Error: " + error.message;
+
+    input.value = message;
+
+    console.error("Message error:", error);
+
+  } finally {
+
+    isSending = false;
+
+    sendButton.disabled = false;
+
+    sendButton.textContent = "Send";
+
+    input.focus();
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+  }
+
+}
+
+
+// ENTER TO SEND
+
+document.getElementById("userInput").addEventListener(
+
+  "keydown",
+
+  function(event) {
+
+    if (event.key === "Enter") {
+
+      event.preventDefault();
+
+      sendMessage();
+
+    }
+
+  }
+
+);
+
 
 // CHECK LOGIN STATUS
 
@@ -976,11 +1176,13 @@ auth.onAuthStateChanged(user => {
 
     document.getElementById("authSection").style.display = "none";
 
-    document.getElementById("logoutButton").style.display = "inline-block";
-
     goHome();
 
   } else {
+
+    conversationHistory = [];
+
+    currentChatId = null;
 
     showAccount();
 
@@ -991,4 +1193,4 @@ auth.onAuthStateChanged(user => {
 </script>
 
 </body>
-</html>
+                                                     </html>
