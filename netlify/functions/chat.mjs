@@ -1,21 +1,31 @@
 export default async (req) => {
-  const headers = { "Content-Type": "application/json" };
+  const headers = {
+    "Content-Type": "application/json"
+  };
 
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed." }), {
-      status: 405, headers
-    });
+    return new Response(JSON.stringify({
+      error: "Method not allowed."
+    }), { status: 405, headers });
   }
 
   try {
     const body = await req.json();
-    const message = typeof body.message === "string" ? body.message.trim() : "";
-    const history = Array.isArray(body.history) ? body.history.slice(-20) : [];
+    const message = typeof body.message === "string"
+      ? body.message.trim()
+      : "";
+
+    const history = Array.isArray(body.history)
+      ? body.history.slice(-12)
+      : [];
+
     const image = body.image || null;
     const action = body.action || "chat";
     const apiKey = Netlify.env.get("GEMINI_API_KEY");
 
-    if (!apiKey) throw new Error("The Gemini API key is missing in Netlify environment variables.");
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is missing in Netlify.");
+    }
 
     if (!message && !image) {
       return new Response(JSON.stringify({
@@ -23,59 +33,84 @@ export default async (req) => {
       }), { status: 400, headers });
     }
 
-    const validMimeTypes = ["image/jpeg", "image/png", "image/webp"];
-
     if (image) {
-      if (!validMimeTypes.includes(image.mimeType)) {
+      const validTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+      ];
+
+      if (!validTypes.includes(image.mimeType)) {
         return new Response(JSON.stringify({
           error: "Please upload a JPG, PNG, or WEBP image."
         }), { status: 400, headers });
       }
 
-      if (typeof image.data !== "string" || image.data.length > 7000000) {
+      if (
+        typeof image.data !== "string" ||
+        image.data.length > 7000000
+      ) {
         return new Response(JSON.stringify({
-          error: "That image is too large. Please choose a smaller image."
+          error: "Image is too large. Choose a smaller image."
         }), { status: 413, headers });
       }
     }
 
     const previousMessages = history.map(item => {
-      const role = item.role === "assistant" ? "ORVEX AI" : "User";
-      return `${role}: ${String(item.content || "").slice(0, 4000)}`;
+      const role = item.role === "assistant"
+        ? "ORVEX AI"
+        : "User";
+
+      return `${role}: ${String(item.content || "").slice(0, 3000)}`;
     }).join("\n\n");
 
-    const callGemini = async (model, parts, generationConfig = {}) => {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": apiKey
-          },
-          body: JSON.stringify({
-            contents: [{
-              role: "user",
-              parts
-            }],
-            generationConfig
-          })
+    async function callGemini(model, parts, config = {}) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 18000);
+
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": apiKey
+            },
+            body: JSON.stringify({
+              contents: [{
+                role: "user",
+                parts
+              }],
+              generationConfig: config
+            }),
+            signal: controller.signal
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.log("Gemini error:", response.status, JSON.stringify(data));
+
+          throw new Error(
+            data.error?.message || `Gemini API error: ${response.status}`
+          );
         }
-      );
 
-      const data = await response.json();
+        return data;
+      } catch (error) {
+        if (error.name === "AbortError") {
+          throw new Error("Gemini took too long to respond. Please try again.");
+        }
 
-      if (!response.ok) {
-        console.log("GEMINI STATUS:", response.status);
-        console.log("GEMINI RESPONSE:", JSON.stringify(data));
-        throw new Error(data.error?.message || "Gemini request failed.");
+        throw error;
+      } finally {
+        clearTimeout(timer);
       }
-
-      return data;
-    };
+    }
 
     if (action === "generate_image" || action === "edit_image") {
-
       if (action === "edit_image" && !image) {
         return new Response(JSON.stringify({
           error: "Attach the picture you want ORVEX to edit first."
@@ -83,12 +118,8 @@ export default async (req) => {
       }
 
       const prompt = action === "edit_image"
-        ? `Edit the attached image according to these instructions. Preserve important details unless the user asks to change them.
-
-Instructions: ${message || "Improve this image."}`
-        : `Create a high-quality image based on this description. Return an image, not just instructions.
-
-Description: ${message}`;
+        ? `Edit the attached image according to these instructions: ${message}`
+        : `Create an image based on this description: ${message}`;
 
       const parts = [{ text: prompt }];
 
@@ -107,12 +138,12 @@ Description: ${message}`;
         { responseModalities: ["TEXT", "IMAGE"] }
       );
 
-      const outputParts = data.candidates?.[0]?.content?.parts || [];
+      const output = data.candidates?.[0]?.content?.parts || [];
 
       let answer = "";
       let generatedImage = null;
 
-      for (const part of outputParts) {
+      for (const part of output) {
         if (part.text) answer += part.text;
 
         const inline = part.inlineData || part.inline_data;
@@ -120,15 +151,13 @@ Description: ${message}`;
         if (inline?.data) {
           generatedImage = {
             data: inline.data,
-            mimeType: inline.mimeType || inline.mime_type || "image/png"
+            mimeType: inline.mimeType || "image/png"
           };
         }
       }
 
       if (!generatedImage) {
-        throw new Error(
-          answer || "The image model did not return an image. Please try again."
-        );
+        throw new Error(answer || "The image model did not return an image.");
       }
 
       return new Response(JSON.stringify({
@@ -137,22 +166,18 @@ Description: ${message}`;
       }), { status: 200, headers });
     }
 
-    const textPrompt = `You are ORVEX AI, a helpful, intelligent, friendly conversational assistant.
+    const prompt = `You are ORVEX AI, a helpful and intelligent conversational assistant.
 
-CONVERSATION RULES:
-- Use previous conversation to understand follow-up questions.
-- Remember what the user said earlier.
-- If asked what the user said earlier, identify an actual earlier message.
-- Never claim this is the first message when history is supplied.
-- Be accurate, clear and natural.
+Use the conversation history to understand follow-up questions.
+Answer accurately, naturally and clearly.
 
 PREVIOUS CONVERSATION:
-${previousMessages || "No earlier messages are available."}
+${previousMessages || "No earlier messages."}
 
-CURRENT USER MESSAGE:
-${message || "Please examine the attached image and describe or answer questions about it."}`;
+CURRENT MESSAGE:
+${message || "Please examine the attached image."}`;
 
-    const parts = [{ text: textPrompt }];
+    const parts = [{ text: prompt }];
 
     if (image) {
       parts.push({
@@ -178,17 +203,15 @@ ${message || "Please examine the attached image and describe or answer questions
       throw new Error("Gemini returned an empty answer.");
     }
 
-    return new Response(JSON.stringify({ answer }), {
-      status: 200,
-      headers
-    });
+    return new Response(JSON.stringify({
+      answer
+    }), { status: 200, headers });
 
   } catch (error) {
+    console.log("ORVEX FUNCTION ERROR:", error);
+
     return new Response(JSON.stringify({
-      error: error?.message || "Something went wrong. Please try again."
-    }), {
-      status: 500,
-      headers
-    });
+      error: error.message || "Something went wrong. Please try again."
+    }), { status: 500, headers });
   }
 };
