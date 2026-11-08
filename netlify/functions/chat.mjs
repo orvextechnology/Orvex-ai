@@ -74,6 +74,8 @@ ORVEX AI RESPONSE:
     const data = await response.json();
 
     if (!response.ok) {
+      console.log("GEMINI STATUS:", response.status);
+console.log("GEMINI RESPONSE:", JSON.stringify(data));
       throw new Error(
         data.error?.message || "Gemini request failed."
       );
