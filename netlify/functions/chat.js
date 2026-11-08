@@ -62,11 +62,14 @@ export default async (req) => {
   JSON.stringify(data)
 );
 
-error.status = response.status;
-throw error;
+if (!response.ok) {
+  const error = new Error(
+    JSON.stringify(data)
+  );
 
-        error.status = response.status;
-        throw error;
+  error.status = response.status;
+  throw error;
+  }
       }
 
       const answer =
