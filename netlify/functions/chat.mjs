@@ -11,6 +11,7 @@ export default async (req) => {
 
   try {
     const body = await req.json();
+
     const message = typeof body.message === "string"
       ? body.message.trim()
       : "";
@@ -65,153 +66,67 @@ export default async (req) => {
     }).join("\n\n");
 
     async function callGemini(model, parts, config = {}) {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 18000);
+      const maxAttempts = model === "gemini-3.1-flash-lite" ? 2 : 1;
 
-      try {
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-goog-api-key": apiKey
-            },
-            body: JSON.stringify({
-              contents: [{
-                role: "user",
-                parts
-              }],
-              generationConfig: config
-            }),
-            signal: controller.signal
-          }
-        );
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 12000);
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          console.log("Gemini error:", response.status, JSON.stringify(data));
-
-          throw new Error(
-            data.error?.message || `Gemini API error: ${response.status}`
+        try {
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-goog-api-key": apiKey
+              },
+              body: JSON.stringify({
+                contents: [{
+                  role: "user",
+                  parts
+                }],
+                generationConfig: config
+              }),
+              signal: controller.signal
+            }
           );
-        }
 
-        return data;
-      } catch (error) {
-        if (error.name === "AbortError") {
-          throw new Error("Gemini took too long to respond. Please try again.");
-        }
+          const data = await response.json();
 
-        throw error;
-      } finally {
-        clearTimeout(timer);
-      }
-    }
+          if (!response.ok) {
+            console.log(
+              "Gemini error:",
+              response.status,
+              JSON.stringify(data)
+            );
 
-    if (action === "generate_image" || action === "edit_image") {
-      if (action === "edit_image" && !image) {
-        return new Response(JSON.stringify({
-          error: "Attach the picture you want ORVEX to edit first."
-        }), { status: 400, headers });
-      }
+            const temporaryError = [
+              429, 500, 502, 503, 504
+            ].includes(response.status);
 
-      const prompt = action === "edit_image"
-        ? `Edit the attached image according to these instructions: ${message}`
-        : `Create an image based on this description: ${message}`;
+            if (temporaryError && attempt < maxAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 800));
+              continue;
+            }
 
-      const parts = [{ text: prompt }];
-
-      if (image) {
-        parts.push({
-          inline_data: {
-            mime_type: image.mimeType,
-            data: image.data
+            throw new Error(
+              temporaryError
+                ? "Gemini is currently busy. Please try again shortly."
+                : data.error?.message || `Gemini API error: ${response.status}`
+            );
           }
-        });
-      }
 
-      const data = await callGemini(
-        "gemini-3.1-flash-image",
-        parts,
-        { responseModalities: ["TEXT", "IMAGE"] }
-      );
+          return data;
 
-      const output = data.candidates?.[0]?.content?.parts || [];
+        } catch (error) {
+          if (
+            attempt < maxAttempts &&
+            (error.name === "AbortError" || error.name === "TypeError")
+          ) {
+            console.log("Retrying Gemini request:", error.message);
+            await new Promise(resolve => setTimeout(resolve, 800));
+            continue;
+          }
 
-      let answer = "";
-      let generatedImage = null;
-
-      for (const part of output) {
-        if (part.text) answer += part.text;
-
-        const inline = part.inlineData || part.inline_data;
-
-        if (inline?.data) {
-          generatedImage = {
-            data: inline.data,
-            mimeType: inline.mimeType || "image/png"
-          };
-        }
-      }
-
-      if (!generatedImage) {
-        throw new Error(answer || "The image model did not return an image.");
-      }
-
-      return new Response(JSON.stringify({
-        answer: answer || "ORVEX has created your image.",
-        image: generatedImage
-      }), { status: 200, headers });
-    }
-
-    const prompt = `You are ORVEX AI, a helpful and intelligent conversational assistant.
-
-Use the conversation history to understand follow-up questions.
-Answer accurately, naturally and clearly.
-
-PREVIOUS CONVERSATION:
-${previousMessages || "No earlier messages."}
-
-CURRENT MESSAGE:
-${message || "Please examine the attached image."}`;
-
-    const parts = [{ text: prompt }];
-
-    if (image) {
-      parts.push({
-        inline_data: {
-          mime_type: image.mimeType,
-          data: image.data
-        }
-      });
-    }
-
-    const data = await callGemini(
-      "gemini-3.1-flash-lite",
-      parts
-    );
-
-    const answer = (data.candidates?.[0]?.content?.parts || [])
-      .filter(part => part.text)
-      .map(part => part.text)
-      .join("")
-      .trim();
-
-    if (!answer) {
-      throw new Error("Gemini returned an empty answer.");
-    }
-
-    return new Response(JSON.stringify({
-      answer
-    }), { status: 200, headers });
-
-  } catch (error) {
-    console.log("ORVEX FUNCTION ERROR:", error);
-
-    return new Response(JSON.stringify({
-      error: error.message || "Something went wrong. Please try again."
-    }), { status: 500, headers });
-  }
-};
+          if (error.name === "
