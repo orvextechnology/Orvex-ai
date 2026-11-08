@@ -89,19 +89,9 @@ export default async (req) => {
       return answer;
     }
 
-    let answer;
+    const answer = await askGemini("gemini-3.5-flash-lite");
 
-    try {
-      answer = await askGemini("gemini-3.5-flash-lite");
-    } catch (error) {
-      const retryable = [429, 500, 502, 503, 504]
-        .includes(error.status);
-
-      if (!retryable && error.name !== "TimeoutError") {
-        throw error;
-      }
-
-      answer = await askGemini("gemini-3.5-flash-lite");
+    
     }
 
     return new Response(
