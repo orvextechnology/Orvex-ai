@@ -3,1194 +3,560 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta name="theme-color" content="#080d20">
 <title>ORVEX AI</title>
-
 <style>
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #080d20;
-  color: white;
-}
-
-header {
-  padding: 22px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #202b49;
-}
-
-.logo {
-  font-size: 25px;
-  font-weight: bold;
-  color: #a78bfa;
-}
-
-.hero {
-  text-align: center;
-  padding: 90px 20px 50px;
-}
-
-h1 {
-  font-size: 43px;
-  margin-bottom: 15px;
-}
-
-h1 span {
-  color: #a78bfa;
-}
-
-.hero p {
-  color: #b8c0d9;
-  line-height: 1.7;
-}
-
-button {
-  background: #8057ed;
-  color: white;
-  border: 0;
-  padding: 14px 25px;
-  border-radius: 9px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.features {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
-  padding: 30px 20px;
-  max-width: 950px;
-  margin: auto;
-}
-
-.card {
-  background: #121b35;
-  padding: 25px;
-  border: 1px solid #293658;
-  border-radius: 14px;
-}
-
-.card p {
-  color: #b8c0d9;
-  line-height: 1.6;
-}
-
-footer {
-  text-align: center;
-  padding: 35px;
-  color: #8993ad;
-}
-
-#chatSection {
-  max-width: 850px;
-  margin: 40px auto;
-  padding: 20px;
-}
-
-.chat-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.chat-header h1 {
-  color: #a78bfa;
-  margin: 0;
-}
-
-#chatHistory {
-  background: #121b35;
-  border: 1px solid #293658;
-  border-radius: 12px;
-  padding: 15px;
-  margin: 20px 0;
-}
-
-#historyList button {
-  display: block;
-  width: 100%;
-  text-align: left;
-  margin: 8px 0;
-  background: #202b49;
-  font-size: 14px;
-  padding: 12px;
-}
-
-#chatBox {
-  background: #121b35;
-  border: 1px solid #293658;
-  border-radius: 14px;
-  padding: 20px;
-  min-height: 300px;
-  max-height: 550px;
-  margin: 20px 0;
-  overflow-y: auto;
-  overflow-wrap: anywhere;
-}
-
-#userInput {
-  flex: 1;
-  min-width: 0;
-  padding: 15px;
-  border-radius: 9px;
-  border: 1px solid #293658;
-  background: #121b35;
-  color: white;
-  font-size: 16px;
-}
-
-.ai-message {
-  line-height: 1.9;
-  font-size: 16px;
-  color: #e5e7eb;
-  margin: 20px 0;
-}
-
-.ai-message p {
-  margin: 0 0 15px;
-}
-
-.ai-message h1,
-.ai-message h2,
-.ai-message h3 {
-  color: #a78bfa;
-  margin: 20px 0 12px;
-}
-
-.ai-message ul,
-.ai-message ol {
-  padding-left: 25px;
-  margin: 12px 0 20px;
-}
-
-.ai-message li {
-  margin-bottom: 10px;
-}
-
-.ai-message strong {
-  color: white;
-}
-
-.ai-message hr {
-  border: 0;
-  border-top: 1px solid #293658;
-  margin: 22px 0;
-}
-
-.user-message {
-  background: #202b49;
-  padding: 12px;
-  border-radius: 9px;
-  line-height: 1.6;
-  margin: 15px 0;
-}
-
-#sendButton {
-  min-width: 75px;
-}
-
-#authSection {
-  max-width: 400px;
-  margin: 70px auto;
-  padding: 25px;
-  background: #151d38;
-  border: 1px solid #293658;
-  border-radius: 12px;
-  color: white;
-  text-align: center;
-}
-
-#authSection input {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  border-radius: 8px;
-  border: 1px solid #293658;
-  background: #080d20;
-  color: white;
-  font-size: 16px;
-}
-
-#authMessage {
-  overflow-wrap: anywhere;
-}
-
-#logoutButton {
-  display: none;
-}
-
-@media(max-width:600px) {
-  h1 {
-    font-size: 32px;
-  }
-
-  #chatSection {
-    padding: 12px;
-  }
-
-  #authSection {
-    margin: 40px 15px;
-  }
-}
+:root{--bg:#080d20;--panel:#101a35;--panel2:#162343;--purple:#8b5cf6;--cyan:#38bdf8;--text:#f4f6ff;--muted:#aab5d1;--line:#263657}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at top,#17264a 0,#080d20 48%);color:var(--text);font-family:Arial,sans-serif;min-height:100vh}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+header{height:66px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);background:#080d20ef;position:sticky;top:0;z-index:5}
+.brand{font-size:22px;font-weight:800;letter-spacing:2px;background:linear-gradient(90deg,#fff,#a78bfa,#38bdf8);background-clip:text;color:transparent}
+.brand small{display:block;font-size:9px;letter-spacing:4px;color:#9aa9cd;margin-top:2px}
+.header-actions{display:flex;gap:8px;align-items:center}
+.btn{border:1px solid #34466c;background:#1a294a;color:white;border-radius:10px;padding:10px 13px}
+.btn.primary{background:linear-gradient(110deg,#7045db,#287fc4);border:0}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+main{max-width:1100px;margin:auto;padding:24px 16px}
+.auth-card{max-width:420px;margin:8vh auto;background:#101a35;border:1px solid var(--line);padding:28px;border-radius:18px;box-shadow:0 20px 60px #0006}
+h1,h2,p{margin-top:0}
+.auth-card h1{text-align:center}
+.sub{color:var(--muted);text-align:center;line-height:1.5}
+.field{width:100%;padding:13px;margin:8px 0;background:#080f25;color:white;border:1px solid #33466d;border-radius:10px;outline:none}
+.auth-buttons{display:flex;gap:10px;margin-top:10px}
+.auth-buttons button{flex:1}
+.status{min-height:22px;color:#fca5a5;font-size:13px;margin-top:10px}
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:18px;min-height:calc(100vh - 120px)}
+.sidebar,.chat-panel,.welcome{background:#0f1932ef;border:1px solid var(--line);border-radius:16px}
+.sidebar{padding:14px;height:calc(100vh - 110px);position:sticky;top:82px;display:flex;flex-direction:column}
+.sidebar .btn{width:100%;margin-bottom:12px}
+.history-title{color:var(--muted);font-size:12px;margin:12px 5px}
+#historyList{overflow:auto}
+.history-item{display:block;width:100%;text-align:left;background:transparent;color:#dbe5ff;border:0;border-radius:8px;padding:10px;margin:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-item:hover{background:#1b2a4c}
+.chat-panel{display:flex;flex-direction:column;min-height:calc(100vh - 120px);overflow:hidden}
+.chat-top{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.chat-top span{color:var(--muted);font-size:12px}
+#messages{padding:20px;flex:1;overflow-y:auto;min-height:350px}
+.welcome{padding:28px;margin:12px auto;max-width:650px;text-align:center;background:linear-gradient(140deg,#17264a,#111a34)}
+.welcome h1{font-size:30px}
+.welcome p{color:var(--muted);line-height:1.6}
+.features{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:20px}
+.feature{background:#0b1430;border:1px solid var(--line);padding:13px;border-radius:10px;color:#cbd7f3;font-size:13px}
+.message{max-width:88%;margin:12px 0;padding:13px 15px;border-radius:14px;line-height:1.6;overflow-wrap:anywhere;white-space:pre-wrap}
+.message.user{margin-left:auto;background:#3b2b75;border:1px solid #7055bf}
+.message.assistant{margin-right:auto;background:#172644;border:1px solid #2b426a}
+.message .role{font-size:11px;color:#a9bce8;margin-bottom:6px;font-weight:bold}
+.message img{display:block;max-width:100%;max-height:420px;border-radius:10px;margin-top:10px}
+.message-actions{display:flex;gap:7px;margin-top:8px}
+.message-actions button{font-size:12px;padding:6px 9px;border-radius:8px;border:1px solid #405477;background:#0b1530;color:#dce7ff}
+.composer{border-top:1px solid var(--line);padding:13px;display:flex;flex-direction:column;gap:9px;background:#0b142b}
+.tools-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tools-row select{background:#111f3e;color:white;border:1px solid #34466c;padding:9px;border-radius:9px}
+#prompt{width:100%;min-height:58px;max-height:160px;resize:vertical;background:#101d3a;color:white;border:1px solid #35496f;border-radius:12px;padding:13px;outline:none}
+.send-row{display:flex;gap:8px;justify-content:flex-end}
+#imagePreview{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px}
+#imagePreview img{height:58px;width:58px;object-fit:cover;border-radius:8px}
+#imagePreview button{background:#402b45;border:0;color:white;padding:7px;border-radius:8px}
+#notice{font-size:12px;color:var(--muted);text-align:center}
+.typing{color:#aab5d1;padding:10px}
+@media(max-width:760px){main{padding:12px 8px}.layout{display:block}.sidebar{height:auto;position:static;margin-bottom:10px}.sidebar #historyList{max-height:110px}.chat-panel{min-height:70vh}.message{max-width:95%}.chat-top{padding:12px}.features{grid-template-columns:1fr 1fr}}
 </style>
 </head>
-
 <body>
 
 <header>
-  <div class="logo">ORVEX AI</div>
-
-  <div>
-    <span>ORVEX LABS</span>
-
-    <button
-      id="logoutButton"
-      onclick="logOut()"
-      style="margin-left:10px"
-    >
-      Log Out
-    </button>
+  <div class="brand">ORVEX AI<small>ORVEX LABS</small></div>
+  <div class="header-actions">
+    <span id="userLabel" class="hidden" style="font-size:12px;color:#aab5d1"></span>
+    <button id="logoutBtn" class="btn hidden" onclick="logout()">Log out</button>
   </div>
 </header>
 
-<!-- HOME PAGE -->
-
-<section class="hero" id="heroSection" style="display:none">
-
-  <h1>Intelligence <span>Without Boundaries.</span></h1>
-
-  <p>
-    Discover a smarter way to learn, research and explore ideas.<br>
-    Technology designed to empower everyone.
-  </p>
-
-  <button onclick="openChat()">
-    Explore ORVEX
-  </button>
-
+<main>
+<section id="authSection" class="auth-card">
+  <h1>ORVEX AI</h1>
+  <p class="sub">Create an account or log in to continue.</p>
+  <input id="email" class="field" type="email" placeholder="Email address" autocomplete="email">
+  <input id="password" class="field" type="password" placeholder="Password" autocomplete="current-password">
+  <div class="auth-buttons">
+    <button class="btn primary" onclick="createAccount()">Create Account</button>
+    <button class="btn" onclick="login()">Log In</button>
+  </div>
+  <div id="authStatus" class="status"></div>
 </section>
 
-<section class="features" id="features" style="display:none">
-
-  <div class="card" onclick="openChat()" style="cursor:pointer">
-    <h2>🤖 AI Assistant</h2>
-    <p>Intelligent conversations and everyday assistance.</p>
-  </div>
-
-  <div class="card" onclick="openChat()" style="cursor:pointer">
-    <h2>📚 Study Assistant</h2>
-    <p>Learn difficult subjects with clear explanations.</p>
-  </div>
-
-  <div class="card" onclick="openChat()" style="cursor:pointer">
-    <h2>🔬 Science Assistant</h2>
-    <p>Explore science, technology and research.</p>
-  </div>
-
-  <div class="card" onclick="openChat()" style="cursor:pointer">
-    <h2>🧮 Mathematics</h2>
-    <p>Understand mathematical problems step by step.</p>
-  </div>
-
-</section>
-
-<!-- CHAT SECTION -->
-
-<section id="chatSection" style="display:none">
-
-  <div class="chat-header">
-
-    <h1>ORVEX AI</h1>
-
-    <button onclick="newChat()">
-      ＋ New Chat
-    </button>
-
-  </div>
-
-  <p style="color:#b8c0d9">
-    Your intelligent AI assistant.
-  </p>
-
-  <div id="chatHistory">
-
-    <h3>My Conversations</h3>
-
+<section id="appSection" class="layout hidden">
+  <aside class="sidebar">
+    <button class="btn primary" onclick="newChat()">＋ New Chat</button>
+    <div class="history-title">YOUR CONVERSATIONS</div>
     <div id="historyList"></div>
+  </aside>
 
-  </div>
+  <section class="chat-panel">
+    <div class="chat-top">
+      <div><strong>ORVEX AI</strong><br><span>Your intelligent assistant</span></div>
+      <button class="btn" onclick="newChat()">New Chat</button>
+    </div>
 
-  <div id="chatBox">
+    <div id="messages">
+      <div class="welcome" id="welcome">
+        <h1>Welcome to ORVEX AI</h1>
+        <p>Ask questions, learn, create images, understand pictures, or speak to ORVEX.</p>
+        <div class="features">
+          <div class="feature">💬 Smart conversations</div>
+          <div class="feature">🎤 Voice questions</div>
+          <div class="feature">🖼️ Image understanding</div>
+          <div class="feature">🎨 Image generation & editing</div>
+        </div>
+      </div>
+    </div>
 
-    <p style="color:#a78bfa">
-      Hello! I'm ORVEX AI. How can I help you today?
-    </p>
+    <div class="composer">
+      <div id="imagePreview" class="hidden"></div>
 
-  </div>
+      <div class="tools-row">
+        <select id="modeSelect" aria-label="AI mode">
+          <option value="chat">💬 Chat / Understand image</option>
+          <option value="generate_image">🎨 Generate image</option>
+          <option value="edit_image">✏️ Edit uploaded image</option>
+        </select>
 
-  <div style="display:flex;gap:8px">
+        <button class="btn" onclick="document.getElementById('imageInput').click()">＋ Image</button>
+        <button class="btn" id="micBtn" onclick="startVoiceInput()">🎤 Speak</button>
+        <button class="btn" onclick="stopSpeaking()">⏹ Stop voice</button>
 
-    <input
-      id="userInput"
-      placeholder="Ask ORVEX anything..."
-      autocomplete="off"
-    >
+        <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp" class="hidden">
+      </div>
 
-    <button id="sendButton" onclick="sendMessage()">
-      Send
-    </button>
+      <textarea id="prompt" placeholder="Message ORVEX AI..." rows="2"></textarea>
 
-  </div>
+      <div class="send-row">
+        <button id="sendBtn" class="btn primary" onclick="sendMessage()">Send ➤</button>
+      </div>
 
-  <button onclick="goHome()" style="margin-top:15px">
-    Back to Home
-  </button>
-
+      <div id="notice">Voice recognition depends on browser support. Image generation may use Gemini API credits.</div>
+    </div>
+  </section>
 </section>
-
-<!-- ACCOUNT SECTION -->
-
-<div id="authSection">
-
-  <h2>ORVEX AI Account</h2>
-
-  <p style="color:#b8c0d9">
-    Create an account or log in to continue.
-  </p>
-
-  <input
-    id="authEmail"
-    type="email"
-    placeholder="Enter your email"
-  >
-
-  <input
-    id="authPassword"
-    type="password"
-    placeholder="Enter password"
-  >
-
-  <button type="button" onclick="signUp()">
-    Create Account
-  </button>
-
-  <button type="button" onclick="logIn()">
-    Log In
-  </button>
-
-  <p id="authMessage"></p>
-
-</div>
-
-<footer id="footerSection" style="display:none">
-
-  © 2026 ORVEX LABS. Building intelligence for everyone.
-
-</footer>
-
-<!-- FIREBASE CONNECTION -->
+</main>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 
 <script>
-
 const firebaseConfig = {
-
   apiKey: "AIzaSyD4oCtqtD8U1wnErSP10iu2sIr0XzaqrQs",
-
   authDomain: "orvex-ai-f4bb3.firebaseapp.com",
-
   projectId: "orvex-ai-f4bb3",
-
   storageBucket: "orvex-ai-f4bb3.firebasestorage.app",
-
   messagingSenderId: "330308895814",
-
   appId: "1:330308895814:web:88c727af7b07ce5fd4b647",
-
   measurementId: "G-CZEGRQQ5R4"
-
 };
 
 firebase.initializeApp(firebaseConfig);
-
 const auth = firebase.auth();
-
 const db = firebase.firestore();
 
 let conversationHistory = [];
-
 let currentChatId = null;
-
 let isSending = false;
+let selectedImage = null;
+let recognition = null;
 
+const $ = id => document.getElementById(id);
 
-// ACCOUNT CREATION
+async function createAccount() {
+  const email = $("email").value.trim();
+  const password = $("password").value;
+  $("authStatus").textContent = "";
 
-async function signUp() {
-
-  const email = document.getElementById("authEmail").value.trim();
-
-  const password = document.getElementById("authPassword").value;
-
-  const message = document.getElementById("authMessage");
-
-  if (!email || !password) {
-
-    message.textContent = "Please enter your email and password.";
-
+  if (!email || password.length < 6) {
+    $("authStatus").textContent = "Enter a valid email and a password with at least 6 characters.";
     return;
-
   }
-
-  if (password.length < 6) {
-
-    message.textContent = "Password must contain at least 6 characters.";
-
-    return;
-
-  }
-
-  message.textContent = "Creating your account...";
 
   try {
-
     await auth.createUserWithEmailAndPassword(email, password);
-
-    message.textContent = "Account created successfully!";
-
+    $("authStatus").textContent = "Account created successfully!";
   } catch (error) {
-
-    message.textContent = error.message;
-
+    $("authStatus").textContent = friendlyAuthError(error);
   }
-
 }
 
-
-// LOGIN
-
-async function logIn() {
-
-  const email = document.getElementById("authEmail").value.trim();
-
-  const password = document.getElementById("authPassword").value;
-
-  const message = document.getElementById("authMessage");
-
-  if (!email || !password) {
-
-    message.textContent = "Please enter your email and password.";
-
-    return;
-
-  }
-
-  message.textContent = "Logging in...";
+async function login() {
+  const email = $("email").value.trim();
+  const password = $("password").value;
+  $("authStatus").textContent = "";
 
   try {
-
     await auth.signInWithEmailAndPassword(email, password);
-
-    message.textContent = "Welcome back!";
-
   } catch (error) {
-
-    message.textContent = error.message;
-
+    $("authStatus").textContent = friendlyAuthError(error);
   }
-
 }
 
+function friendlyAuthError(error) {
+  const messages = {
+    "auth/email-already-in-use":"This email already has an account. Please log in.",
+    "auth/invalid-email":"Please enter a valid email address.",
+    "auth/weak-password":"Use a password with at least 6 characters.",
+    "auth/user-not-found":"No account was found with this email.",
+    "auth/wrong-password":"Incorrect password. Try again.",
+    "auth/invalid-credential":"Email or password is incorrect.",
+    "auth/too-many-requests":"Too many attempts. Please wait and try again."
+  };
 
-// LOGOUT
-
-async function logOut() {
-
-  try {
-
-    await auth.signOut();
-
-    conversationHistory = [];
-
-    currentChatId = null;
-
-    showAccount();
-
-    document.getElementById("authMessage").textContent =
-      "You have logged out successfully.";
-
-  } catch (error) {
-
-    alert(error.message);
-
-  }
-
+  return messages[error.code] || error.message;
 }
 
-
-// ACCOUNT SCREEN
-
-function showAccount() {
-
-  document.getElementById("authSection").style.display = "block";
-
-  document.getElementById("heroSection").style.display = "none";
-
-  document.getElementById("features").style.display = "none";
-
-  document.getElementById("chatSection").style.display = "none";
-
-  document.getElementById("footerSection").style.display = "none";
-
-  document.getElementById("logoutButton").style.display = "none";
-
+async function logout() {
+  stopSpeaking();
+  await auth.signOut();
 }
 
+auth.onAuthStateChanged(async user => {
+  $("authSection").classList.toggle("hidden", !!user);
+  $("appSection").classList.toggle("hidden", !user);
+  $("logoutBtn").classList.toggle("hidden", !user);
+  $("userLabel").classList.toggle("hidden", !user);
 
-// HOME SCREEN
-
-function goHome() {
-
-  if (!auth.currentUser) {
-
-    showAccount();
-
-    return;
-
-  }
-
-  document.getElementById("authSection").style.display = "none";
-
-  document.getElementById("heroSection").style.display = "block";
-
-  document.getElementById("features").style.display = "grid";
-
-  document.getElementById("footerSection").style.display = "block";
-
-  document.getElementById("chatSection").style.display = "none";
-
-  document.getElementById("logoutButton").style.display = "inline-block";
-
-  window.scrollTo(0, 0);
-
-}
-
-
-// OPEN CHAT
-
-async function openChat() {
-
-  if (!auth.currentUser) {
-
-    showAccount();
-
-    return;
-
-  }
-
-  document.getElementById("heroSection").style.display = "none";
-
-  document.getElementById("features").style.display = "none";
-
-  document.getElementById("footerSection").style.display = "none";
-
-  document.getElementById("chatSection").style.display = "block";
-
-  await loadConversation();
-
-  window.scrollTo(0, 0);
-
-}
-
-
-// SAVE CONVERSATION
-
-async function saveConversation() {
-
-  if (!auth.currentUser) return;
-
-  if (conversationHistory.length === 0) return;
-
-  if (!currentChatId) {
-
-    currentChatId = db.collection("users")
-
-      .doc(auth.currentUser.uid)
-
-      .collection("chats")
-
-      .doc().id;
-
-  }
-
-  const firstMessage = conversationHistory.find(
-
-    item => item.role === "user"
-
-  );
-
-  try {
-
-    await db.collection("users")
-
-      .doc(auth.currentUser.uid)
-
-      .collection("chats")
-
-      .doc(currentChatId)
-
-      .set({
-
-        title: firstMessage
-
-          ? firstMessage.content.substring(0, 50)
-
-          : "New Chat",
-
-        messages: conversationHistory,
-
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-
-      });
-
+  if (user) {
+    $("userLabel").textContent = user.email || "Signed in";
     await loadChatHistory();
 
-  } catch (error) {
-
-    console.error("Chat saving failed:", error);
-
+    if (!currentChatId) showWelcome();
+  } else {
+    conversationHistory = [];
+    currentChatId = null;
   }
+});
 
+function showWelcome() {
+  $("messages").innerHTML = `<div class="welcome" id="welcome">
+    <h1>Welcome to ORVEX AI</h1>
+    <p>Ask questions, learn, create images, understand pictures, or speak to ORVEX.</p>
+    <div class="features">
+      <div class="feature">💬 Smart conversations</div>
+      <div class="feature">🎤 Voice questions</div>
+      <div class="feature">🖼️ Image understanding</div>
+      <div class="feature">🎨 Image generation & editing</div>
+    </div>
+  </div>`;
 }
-
-
-// LOAD CONVERSATION LIST
-
-async function loadConversation() {
-
-  currentChatId = null;
-
-  conversationHistory = [];
-
-  renderConversation();
-
-  await loadChatHistory();
-
-}
-
-
-// LOAD SAVED CHATS
-
-async function loadChatHistory() {
-
-  if (!auth.currentUser) return;
-
-  const historyList = document.getElementById("historyList");
-
-  historyList.innerHTML = "Loading conversations...";
-
-  try {
-
-    const snapshot = await db.collection("users")
-
-      .doc(auth.currentUser.uid)
-
-      .collection("chats")
-
-      .orderBy("updatedAt", "desc")
-
-      .get();
-
-    historyList.innerHTML = "";
-
-    if (snapshot.empty) {
-
-      historyList.innerHTML = "<p>No saved conversations yet.</p>";
-
-      return;
-
-    }
-
-    snapshot.forEach(doc => {
-
-      const button = document.createElement("button");
-
-      button.type = "button";
-
-      button.textContent = doc.data().title || "New Chat";
-
-      button.onclick = () => openSavedChat(doc.id);
-
-      historyList.appendChild(button);
-
-    });
-
-  } catch (error) {
-
-    historyList.textContent = "Could not load conversations.";
-
-    console.error("History loading failed:", error);
-
-  }
-
-}
-
-
-// OPEN SAVED CHAT
-
-async function openSavedChat(chatId) {
-
-  if (!auth.currentUser) return;
-
-  try {
-
-    const doc = await db.collection("users")
-
-      .doc(auth.currentUser.uid)
-
-      .collection("chats")
-
-      .doc(chatId)
-
-      .get();
-
-    if (!doc.exists) {
-
-      alert("This conversation could not be found.");
-
-      return;
-
-    }
-
-    currentChatId = chatId;
-
-    const messages = doc.data().messages;
-
-    conversationHistory = Array.isArray(messages) ? messages : [];
-
-    renderConversation();
-
-    window.scrollTo(0, 0);
-
-  } catch (error) {
-
-    alert("Could not open this conversation.");
-
-    console.error(error);
-
-  }
-
-}
-
-
-// NEW CHAT
 
 function newChat() {
+  currentChatId = null;
+  conversationHistory = [];
+  showWelcome();
+  $("prompt").focus();
+}
 
+function chatsRef() {
+  return db.collection("users").doc(auth.currentUser.uid).collection("chats");
+}
+
+async function loadChatHistory() {
   if (!auth.currentUser) return;
 
-  conversationHistory = [];
+  try {
+    const snapshot = await chatsRef().orderBy("updatedAt", "desc").limit(30).get();
+    $("historyList").innerHTML = "";
 
-  currentChatId = null;
-
-  renderConversation();
-
-  document.getElementById("userInput").focus();
-
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const button = document.createElement("button");
+      button.className = "history-item";
+      button.textContent = data.title || "New conversation";
+      button.onclick = () => openConversation(doc.id);
+      $("historyList").appendChild(button);
+    });
+  } catch (error) {
+    console.error("Could not load chat history:", error);
+  }
 }
 
+async function saveConversation() {
+  if (!auth.currentUser || conversationHistory.length === 0) return;
 
-// DISPLAY MESSAGES
+  if (!currentChatId) currentChatId = chatsRef().doc().id;
+
+  const firstMessage = conversationHistory.find(item => item.role === "user");
+  const title = (firstMessage?.content || "New conversation").replace(/\s+/g, " ").slice(0, 48);
+
+  try {
+    await chatsRef().doc(currentChatId).set({
+      title,
+      messages: conversationHistory,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    await loadChatHistory();
+  } catch (error) {
+    console.error("Conversation save failed:", error);
+    addSystemNote("Your answer arrived, but saving this conversation failed. Check your internet connection.");
+  }
+}
+
+async function openConversation(chatId) {
+  try {
+    const doc = await chatsRef().doc(chatId).get();
+
+    if (!doc.exists) return;
+
+    currentChatId = chatId;
+    conversationHistory = Array.isArray(doc.data().messages) ? doc.data().messages : [];
+    renderConversation();
+  } catch (error) {
+    addSystemNote("Could not open that conversation. Please try again.");
+  }
+}
 
 function renderConversation() {
-
-  const chatBox = document.getElementById("chatBox");
-
-  chatBox.innerHTML = "";
-
-  if (conversationHistory.length === 0) {
-
-    chatBox.innerHTML = `
-
-      <p style="color:#a78bfa">
-
-        Hello! I'm ORVEX AI. How can I help you today?
-
-      </p>
-
-    `;
-
-    return;
-
-  }
+  $("messages").innerHTML = "";
 
   conversationHistory.forEach(item => {
-
-    if (item.role === "user") {
-
-      const p = document.createElement("p");
-
-      p.className = "user-message";
-
-      p.textContent = "You: " + item.content;
-
-      chatBox.appendChild(p);
-
-    } else {
-
-      const div = document.createElement("div");
-
-      div.className = "ai-message";
-
-      div.innerHTML = formatAnswer(item.content);
-
-      chatBox.appendChild(div);
-
-    }
-
+    addMessage(item.role, item.content);
   });
 
-  chatBox.scrollTop = chatBox.scrollHeight;
-
+  $("messages").scrollTop = $("messages").scrollHeight;
 }
 
+function addMessage(role, content, imageData = null, imageMime = "image/png") {
+  const box = document.createElement("div");
+  box.className = `message ${role === "user" ? "user" : "assistant"}`;
 
-// FORMAT AI ANSWERS
+  const label = document.createElement("div");
+  label.className = "role";
+  label.textContent = role === "user" ? "YOU" : "ORVEX AI";
 
-function formatAnswer(text) {
+  const text = document.createElement("div");
+  text.textContent = content || "";
 
-  const escapeHTML = str => str.replace(/[&<>"']/g, char => ({
+  box.append(label, text);
 
-    "&": "&amp;",
-
-    "<": "&lt;",
-
-    ">": "&gt;",
-
-    '"': "&quot;",
-
-    "'": "&#39;"
-
-  }[char]));
-
-  const lines = escapeHTML(String(text)).split("\n");
-
-  let html = "";
-
-  let inList = false;
-
-  for (const line of lines) {
-
-    const trimmed = line.trim();
-
-    if (trimmed.startsWith("### ")) {
-
-      if (inList) {
-
-        html += "</ul>";
-
-        inList = false;
-
-      }
-
-      html += `<h3>${trimmed.slice(4)}</h3>`;
-
-    } else if (trimmed.startsWith("## ")) {
-
-      if (inList) {
-
-        html += "</ul>";
-
-        inList = false;
-
-      }
-
-      html += `<h2>${trimmed.slice(3)}</h2>`;
-
-    } else if (trimmed.startsWith("# ")) {
-
-      if (inList) {
-
-        html += "</ul>";
-
-        inList = false;
-
-      }
-
-      html += `<h1>${trimmed.slice(2)}</h1>`;
-
-    } else if (trimmed.startsWith("---")) {
-
-      if (inList) {
-
-        html += "</ul>";
-
-        inList = false;
-
-      }
-
-      html += "<hr>";
-
-    } else if (/^[-*] /.test(trimmed)) {
-
-      if (!inList) {
-
-        html += "<ul>";
-
-        inList = true;
-
-      }
-
-      html += `<li>${trimmed.slice(2)}</li>`;
-
-    } else {
-
-      if (inList) {
-
-        html += "</ul>";
-
-        inList = false;
-
-      }
-
-      if (trimmed) {
-
-        html += `<p>${trimmed}</p>`;
-
-      }
-
-    }
-
+  if (imageData) {
+    const img = document.createElement("img");
+    img.src = `data:${imageMime};base64,${imageData}`;
+    img.alt = "Image from ORVEX AI";
+    box.appendChild(img);
   }
 
-  if (inList) {
+  if (role === "assistant" && content) {
+    const actions = document.createElement("div");
+    actions.className = "message-actions";
 
-    html += "</ul>";
+    const read = document.createElement("button");
+    read.textContent = "🔊 Read aloud";
+    read.onclick = () => speakText(content);
 
+    actions.appendChild(read);
+    box.appendChild(actions);
   }
 
-  return html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-
+  $("messages").appendChild(box);
+  $("messages").scrollTop = $("messages").scrollHeight;
 }
 
+function addSystemNote(text) {
+  const note = document.createElement("div");
+  note.className = "typing";
+  note.textContent = text;
+  $("messages").appendChild(note);
+}
 
-// SEND MESSAGE TO BACKEND
+async function compressImage(file) {
+  if (!file || !file.type.startsWith("image/")) {
+    throw new Error("Choose an image file.");
+  }
 
-async function sendToOrvex(message) {
-
-  const response = await fetch("/.netlify/functions/chat", {
-
-    method: "POST",
-
-    headers: {
-
-      "Content-Type": "application/json"
-
-    },
-
-    body: JSON.stringify({
-
-      message: message,
-
-      history: conversationHistory
-
-    })
-
+  const dataUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Could not read that image."));
+    reader.readAsDataURL(file);
   });
 
-  const raw = await response.text();
+  const img = new Image();
+  img.src = dataUrl;
 
-  let data;
+  await new Promise((resolve, reject) => {
+    img.onload = resolve;
+    img.onerror = () => reject(new Error("That image could not be opened."));
+  });
+
+  const max = 1280;
+  const scale = Math.min(1, max / Math.max(img.width, img.height));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(img.width * scale));
+  canvas.height = Math.max(1, Math.round(img.height * scale));
+
+  canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  const jpeg = canvas.toDataURL("image/jpeg", 0.82).split(",")[1];
+
+  return {
+    data: jpeg,
+    mimeType: "image/jpeg",
+    preview: canvas.toDataURL("image/jpeg", 0.75)
+  };
+}
+
+$("imageInput").addEventListener("change", async event => {
+  const file = event.target.files[0];
+  if (!file) return;
 
   try {
+    selectedImage = await compressImage(file);
 
-    data = JSON.parse(raw);
+    $("imagePreview").innerHTML = "";
 
-  } catch {
+    const img = document.createElement("img");
+    img.src = selectedImage.preview;
 
-    throw new Error("The AI server returned an invalid response.");
+    const label = document.createElement("span");
+    label.textContent = "Image ready";
 
+    const remove = document.createElement("button");
+    remove.textContent = "Remove";
+    remove.onclick = clearImage;
+
+    $("imagePreview").append(img, label, remove);
+    $("imagePreview").classList.remove("hidden");
+
+  } catch (error) {
+    addSystemNote(error.message);
   }
+});
 
-  if (!response.ok) {
-
-    throw new Error(data.error || "Something went wrong.");
-
-  }
-
-  if (!data.answer) {
-
-    throw new Error("ORVEX did not return an answer.");
-
-  }
-
-  return data.answer;
-
+function clearImage() {
+  selectedImage = null;
+  $("imageInput").value = "";
+  $("imagePreview").innerHTML = "";
+  $("imagePreview").classList.add("hidden");
 }
-
-
-// SEND MESSAGE
 
 async function sendMessage() {
-
-  if (!auth.currentUser) {
-
-    showAccount();
-
-    return;
-
-  }
-
   if (isSending) return;
 
-  const input = document.getElementById("userInput");
+  const message = $("prompt").value.trim();
+  const action = $("modeSelect").value;
 
-  const sendButton = document.getElementById("sendButton");
+  if (!message && !selectedImage) return;
 
-  const chatBox = document.getElementById("chatBox");
+  if (action === "edit_image" && !selectedImage) {
+    addSystemNote("Please attach the image you want to edit.");
+    return;
+  }
 
-  const message = input.value.trim();
-
-  if (!message) return;
+  if (action === "generate_image" && !message) return;
 
   isSending = true;
+  $("sendBtn").disabled = true;
+  $("sendBtn").textContent = "Working...";
 
-  input.value = "";
+  const imageToSend = selectedImage ? {
+    data: selectedImage.data,
+    mimeType: selectedImage.mimeType
+  } : null;
 
-  sendButton.disabled = true;
+  const userText = message || (imageToSend ? "Please examine this image." : "");
 
-  sendButton.textContent = "...";
+  addMessage("user", userText + (imageToSend ? " [Image attached]" : ""));
+  $("prompt").value = "";
 
-  const userMessage = document.createElement("p");
+  const loading = document.createElement("div");
+  loading.className = "typing";
+  loading.textContent = action === "generate_image" || action === "edit_image"
+    ? "ORVEX is working on your image..."
+    : "ORVEX is thinking...";
 
-  userMessage.className = "user-message";
-
-  userMessage.textContent = "You: " + message;
-
-  chatBox.appendChild(userMessage);
-
-  const thinking = document.createElement("p");
-
-  thinking.className = "ai-message";
-
-  thinking.textContent = "ORVEX AI is thinking...";
-
-  chatBox.appendChild(thinking);
-
-  chatBox.scrollTop = chatBox.scrollHeight;
+  $("messages").appendChild(loading);
+  $("messages").scrollTop = $("messages").scrollHeight;
 
   try {
+    const response = await fetch("/.netlify/functions/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: userText,
+        history: conversationHistory,
+        image: imageToSend,
+        action
+      })
+    });
 
-    const answer = await sendToOrvex(message);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "The request failed.");
+    }
+
+    loading.remove();
 
     conversationHistory.push({
-
       role: "user",
-
-      content: message
-
+      content: userText + (imageToSend ? " [Image attached]" : "")
     });
 
     conversationHistory.push({
-
       role: "assistant",
-
-      content: answer
-
+      content: data.answer || "Done."
     });
 
-    thinking.innerHTML = formatAnswer(answer);
+    addMessage(
+      "assistant",
+      data.answer || "Done.",
+      data.image?.data || null,
+      data.image?.mimeType || "image/png"
+    );
 
+    clearImage();
     await saveConversation();
 
   } catch (error) {
-
-    thinking.textContent = "Error: " + error.message;
-
-    input.value = message;
-
-    console.error("Message error:", error);
-
+    loading.remove();
+    addSystemNote("ORVEX: " + (error.message || "Something went wrong."));
   } finally {
-
     isSending = false;
-
-    sendButton.disabled = false;
-
-    sendButton.textContent = "Send";
-
-    input.focus();
-
-    chatBox.scrollTop = chatBox.scrollHeight;
-
+    $("sendBtn").disabled = false;
+    $("sendBtn").textContent = "Send ➤";
+    $("prompt").focus();
   }
-
 }
 
-
-// ENTER TO SEND
-
-document.getElementById("userInput").addEventListener(
-
-  "keydown",
-
-  function(event) {
-
-    if (event.key === "Enter") {
-
-      event.preventDefault();
-
-      sendMessage();
-
-    }
-
+$("prompt").addEventListener("keydown", event => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    sendMessage();
   }
-
-);
-
-
-// CHECK LOGIN STATUS
-
-auth.onAuthStateChanged(user => {
-
-  if (user) {
-
-    document.getElementById("authSection").style.display = "none";
-
-    goHome();
-
-  } else {
-
-    conversationHistory = [];
-
-    currentChatId = null;
-
-    showAccount();
-
-  }
-
 });
 
-</script>
+function startVoiceInput() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-</body>
-                                                     </html>
+  if (!SpeechRecognition) {
+    addSystemNote("Voice input is not supported in this browser. Try Chrome on Android and allow microphone access.");
+    return;
+  }
+
+  if (recognition) recognition.stop();
+
+  recognition = new SpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  $("micBtn").textContent = "🎙 Listening...";
+
+  recognition.onresult = event => {
+    const spoken = event.results[0][0].transcript;
+    $("prompt").value = ($("prompt").value + " " + spoken).trim();
+  };
+
+  r
