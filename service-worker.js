@@ -1,4 +1,4 @@
-const CACHE_NAME = "orvex-ai-v2";
+const CACHE_NAME = "orvex-ai-v3";
 
 const APP_FILES = [
   "/",
