@@ -1,12 +1,10 @@
-const CACHE_NAME = "orvex-ai-v1";
+const CACHE_NAME = "orvex-ai-v2";
 
 const APP_FILES = [
   "/",
   "/index.html",
   "/manifest.webmanifest",
-  "/icons/orvex.svg",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png"
+  "/icons/orvex.svg"
 ];
 
 self.addEventListener("install", event => {
