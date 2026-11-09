@@ -1,13 +1,60 @@
+const FIREBASE_API_KEY = "AIzaSyD4oCtqtD8U1wnErSP10iu2sIr0XzaqrQs";
+
 export async function onRequestPost({ request, env }) {
   const headers = {
     "Content-Type": "application/json"
   };
 
   try {
+    // 1. Check Firebase login token
+    const authorization = request.headers.get("Authorization") || "";
+    const token = authorization.startsWith("Bearer ")
+      ? authorization.slice(7)
+      : "";
+
+    if (!token) {
+      return new Response(JSON.stringify({
+        error: "Please sign in to use ORVEX AI."
+      }), { status: 401, headers });
+    }
+
+    // 2. Verify the token with Firebase
+    const verification = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${FIREBASE_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken: token })
+      }
+    );
+
+    if (!verification.ok) {
+      return new Response(JSON.stringify({
+        error: "Your session is invalid. Please sign in again."
+      }), { status: 401, headers });
+    }
+
+    const account = await verification.json();
+    const user = account.users?.[0];
+
+    if (!user || user.disabled === true) {
+      return new Response(JSON.stringify({
+        error: "Your account could not be verified."
+      }), { status: 401, headers });
+    }
+
+    // 3. Check Gemini API key
+    const apiKey = env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      throw new Error("AI service is not configured.");
+    }
+
+    // 4. Read request
     const body = await request.json();
 
     const message = typeof body.message === "string"
-      ? body.message.trim()
+      ? body.message.trim().slice(0, 10000)
       : "";
 
     const history = Array.isArray(body.history)
@@ -16,11 +63,6 @@ export async function onRequestPost({ request, env }) {
 
     const image = body.image || null;
     const action = body.action || "chat";
-    const apiKey = env.GEMINI_API_KEY;
-
-    if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is missing.");
-    }
 
     if (!message && !image) {
       return new Response(JSON.stringify({
@@ -28,6 +70,7 @@ export async function onRequestPost({ request, env }) {
       }), { status: 400, headers });
     }
 
+    // 5. Validate uploaded image
     if (image) {
       const validTypes = [
         "image/jpeg",
@@ -35,30 +78,32 @@ export async function onRequestPost({ request, env }) {
         "image/webp"
       ];
 
-      if (!validTypes.includes(image.mimeType)) {
-        return new Response(JSON.stringify({
-          error: "Please upload a JPG, PNG, or WEBP image."
-        }), { status: 400, headers });
-      }
-
       if (
+        typeof image !== "object" ||
+        !validTypes.includes(image.mimeType) ||
         typeof image.data !== "string" ||
         image.data.length > 7000000
       ) {
         return new Response(JSON.stringify({
-          error: "Image is too large. Choose a smaller image."
-        }), { status: 413, headers });
+          error: "Invalid image or image too large. Use JPG, PNG, or WEBP."
+        }), { status: 400, headers });
       }
     }
 
+    // 6. Prepare conversation history
     const previousMessages = history.map(item => {
       const role = item.role === "assistant"
         ? "ORVEX AI"
         : "User";
 
-      return `${role}: ${String(item.content || item.text || "").slice(0, 3000)}`;
+      const content = String(
+        item.content || item.text || ""
+      ).slice(0, 3000);
+
+      return `${role}: ${content}`;
     }).join("\n\n");
 
+    // 7. Gemini request function
     async function callGemini(model, parts, config = {}) {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 18000);
@@ -86,9 +131,7 @@ export async function onRequestPost({ request, env }) {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(
-            data.error?.message || `Gemini API error: ${response.status}`
-          );
+          throw new Error("The AI service could not complete your request.");
         }
 
         return data;
@@ -105,7 +148,9 @@ export async function onRequestPost({ request, env }) {
       }
     }
 
+    // 8. Image generation and editing
     if (action === "generate_image" || action === "edit_image") {
+
       if (action === "edit_image" && !image) {
         return new Response(JSON.stringify({
           error: "Attach the picture you want ORVEX to edit first."
@@ -161,6 +206,7 @@ export async function onRequestPost({ request, env }) {
       }), { status: 200, headers });
     }
 
+    // 9. Normal chat and image understanding
     const prompt = `You are ORVEX AI, a helpful and intelligent conversational assistant.
 
 Use the conversation history to understand follow-up questions.
@@ -220,4 +266,4 @@ export async function onRequest({ request }) {
     status: 405,
     headers: { "Content-Type": "application/json" }
   });
-           }
+      }
