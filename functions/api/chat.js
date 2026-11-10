@@ -361,36 +361,7 @@ ${message || "Please examine the attached image."}`;
     });
       
             
-    } catch (error) {
-      if (!String(error.message).includes("Gemini error (503)")) {
-        throw error;
-      }
-
-      console.warn("Primary chat model busy. Switching to backup.");
-
-      data = await callGemini(
-        "gemini-3.1-flash-lite",
-        parts,
-        {
-          temperature: 0.6,
-          maxOutputTokens: 1200
-        }
-      );
-    }
-
-    const answer = (data.candidates?.[0]?.content?.parts || [])
-      .filter(part => part.text)
-      .map(part => part.text)
-      .join("")
-      .trim();
-
-    if (!answer) {
-      throw new Error("Gemini returned an empty answer.");
-    }
-
-    return new Response(JSON.stringify({
-      answer
-    }), { status: 200, headers });
+    
      
   } catch (error) {
     console.error("ORVEX API error:", error);
