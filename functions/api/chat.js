@@ -308,63 +308,57 @@ ${message || "Please examine the attached image."}`;
     let streamResponse;
 
     async function tryModelWithRetry(model) {
-      let lastError;
 
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        try {
-          return await startGeminiStream(model);
-        } catch (error) {
-          lastError = error;
+    // 9. Normal chat and image understanding
+    const prompt = `You are ORVEX AI, a professional, intelligent and reliable conversational assistant.
 
-          const isBusy = String(error.message).includes("503");
+Answer directly, accurately and naturally.
+Use clear headings, short paragraphs, bullet points and numbered steps where useful.
+Keep simple answers concise and explain difficult topics clearly.
+Never invent facts or pretend to know something uncertain.
+Maintain context when answering follow-up questions.
 
-          if (!isBusy) {
-            throw error;
-          }
+PREVIOUS CONVERSATION:
+${previousMessages || "No earlier messages."}
 
-          console.warn(`${model} is busy. Attempt ${attempt} failed.`);
+CURRENT MESSAGE:
+${message || "Please examine the attached image."}`;
 
-          if (attempt < 2) {
-            await new Promise(resolve => setTimeout(resolve, 800));
-          }
+    const parts = [{ text: prompt }];
+
+    if (image) {
+      parts.push({
+        inline_data: {
+          mime_type: image.mimeType,
+          data: image.data
         }
-      }
-
-      throw lastError;
+      });
     }
 
-    try {
-      streamResponse = await tryModelWithRetry("gemini-3.5-flash-lite");
-
-    } catch (error) {
-      if (!String(error.message).includes("503")) {
-        throw error;
+    const data = await callGemini(
+      "gemini-2.5-flash",
+      parts,
+      {
+        temperature: 0.6,
+        maxOutputTokens: 1200
       }
+    );
 
-      console.warn("Primary model unavailable. Switching to backup.");
+    const answer = (data.candidates?.[0]?.content?.parts || [])
+      .map(part => part.text || "")
+      .join("");
 
-      try {
-        streamResponse = await tryModelWithRetry("gemini-3.1-flash-lite");
-
-      } catch (backupError) {
-        if (!String(backupError.message).includes("503")) {
-          throw backupError;
-        }
-
-        throw new Error(
-          "ORVEX AI is experiencing high demand right now. Please try again shortly."
-        );
-      }
+    if (!answer.trim()) {
+      throw new Error("Gemini returned an empty answer. Please try again.");
     }
 
-    return new Response(streamResponse.body, {
+    return new Response(JSON.stringify({
+      answer: answer
+    }), {
       status: 200,
-      headers: {
-        "Content-Type": "text/event-stream; charset=utf-8",
-        "Cache-Control": "no-cache, no-transform",
-        "X-Accel-Buffering": "no"
-      }
+      headers
     });
+  
       
             
     
