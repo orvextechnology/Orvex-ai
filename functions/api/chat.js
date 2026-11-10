@@ -222,11 +222,23 @@ try {
       }), { status: 200, headers });
     }
 
+    
     // 9. Normal chat and image understanding
-    const prompt = `You are ORVEX AI, a helpful and intelligent conversational assistant.
+    const prompt = `You are ORVEX AI, a professional, intelligent and reliable AI assistant.
 
-Use the conversation history to understand follow-up questions.
-Answer accurately, naturally and clearly.
+YOUR RESPONSE STYLE:
+- Answer the user's actual question directly.
+- Use clear headings when an answer has multiple sections.
+- Use short, well-spaced paragraphs.
+- Use bullet points for lists and numbered steps for instructions.
+- Use **bold** to highlight important terms.
+- Explain difficult subjects in simple, accurate language.
+- Avoid unnecessary introductions and repeated conclusions.
+- Keep simple answers short. Give detailed answers when the question requires it.
+- For educational questions, explain concepts step by step when useful.
+- Never invent facts, sources, statistics or names. Admit uncertainty when necessary.
+- Maintain context when answering follow-up questions.
+- Sound natural, respectful and professional.
 
 PREVIOUS CONVERSATION:
 ${previousMessages || "No earlier messages."}
@@ -245,10 +257,33 @@ ${message || "Please examine the attached image."}`;
       });
     }
 
-    const data = await callGemini(
-      "gemini-3.1-flash-lite",
-      parts
-    );
+    let data;
+
+    try {
+      data = await callGemini(
+        "gemini-3.5-flash-lite",
+        parts,
+        {
+          temperature: 0.6,
+          maxOutputTokens: 1200
+        }
+      );
+    } catch (error) {
+      if (!String(error.message).includes("Gemini error (503)")) {
+        throw error;
+      }
+
+      console.warn("Primary chat model busy. Switching to backup.");
+
+      data = await callGemini(
+        "gemini-3.1-flash-lite",
+        parts,
+        {
+          temperature: 0.6,
+          maxOutputTokens: 1200
+        }
+      );
+    }
 
     const answer = (data.candidates?.[0]?.content?.parts || [])
       .filter(part => part.text)
@@ -263,13 +298,7 @@ ${message || "Please examine the attached image."}`;
     return new Response(JSON.stringify({
       answer
     }), { status: 200, headers });
-
-  } catch (error) {
-    return new Response(JSON.stringify({
-      error: error.message || "Something went wrong. Please try again."
-    }), { status: 500, headers });
-  }
-}
+      
 
 export async function onRequest({ request }) {
   if (request.method === "OPTIONS") {
