@@ -231,11 +231,118 @@ async function sendMessage(){
         for(const line of event.split(/\r?\n/)){
           if(!line.startsWith("data:"))continue;
 
+async function sendMessage(){
+  if(isSending)return;
+
+  const text=promptInput.value.trim();
+  const mode=document.getElementById("mode").value;
+
+  if(!text&&!selectedImage&&mode!=="generate_image"){
+    notice.textContent="Type a message or attach an image.";
+    return;
+  }
+
+  if(!auth.currentUser){
+    notice.textContent="Please log in first.";
+    return;
+  }
+
+  if(mode==="edit_image"&&!selectedImage){
+    notice.textContent="Attach the picture you want to edit first.";
+    return;
+  }
+
+  isSending=true;
+  sendBtn.disabled=true;
+  notice.textContent="ORVEX is connecting...";
+
+  const imageForMessage=selectedImageUrl;
+  const imageData=selectedImage;
+  const userText=text||(mode==="generate_image"?"Generate an image.":"Please examine this image.");
+
+  addMessage("user",userText,imageForMessage);
+  promptInput.value="";
+  clearImagePreview();
+
+  try{
+    const idToken=await auth.currentUser.getIdToken();
+
+    const res=await fetch("/api/chat",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+idToken
+      },
+      body:JSON.stringify({
+        message:userText,
+        history:conversationHistory.slice(-12),
+        image:imageData,
+        action:mode==="understand_image"?"chat":mode
+      })
+    });
+
+    if(!res.ok){
+      const errorText=await res.text();
+      let errorMessage=errorText;
+
+      try{
+        const errorData=JSON.parse(errorText);
+        errorMessage=errorData.error||errorData.message||errorText;
+      }catch(e){}
+
+      throw new Error(errorMessage||"The AI request failed.");
+    }
+
+    const contentType=res.headers.get("content-type")||"";
+    let answer="";
+
+    if(contentType.includes("application/json")){
+      const data=await res.json();
+
+      answer=data.answer||"ORVEX completed the request.";
+
+      const imageUrl=data.image?.data
+        ?`data:${data.image.mimeType||"image/png"};base64,${data.image.data}`
+        :null;
+
+      addMessage("assistant",answer,imageUrl);
+
+    }else{
+      if(!res.body){
+        throw new Error("Streaming is not supported by this browser.");
+      }
+
+      const assistantMessage=addMessage("assistant","");
+      const reader=res.body.getReader();
+      const decoder=new TextDecoder();
+      let buffer="";
+
+      function updateAnswer(){
+        const oldFormatted=assistantMessage.querySelector(".formatted-answer");
+
+        if(oldFormatted){
+          oldFormatted.outerHTML=formatAnswer(answer);
+        }
+
+        messages.scrollTop=messages.scrollHeight;
+      }
+
+      function processEvent(event){
+        for(const line of event.split(/\r?\n/)){
+          if(!line.startsWith("data:"))continue;
+
           const raw=line.slice(5).trim();
 
           if(!raw||raw==="[DONE]")continue;
 
-          const chunk=JSON.parse(raw);
+          let chunk;
+
+          try{
+            chunk=JSON.parse(raw);
+          }catch(e){
+            console.warn("Skipping invalid stream event:",raw);
+            continue;
+          }
 
           const textChunk=(chunk.candidates?.[0]?.content?.parts||[])
             .map(part=>part.text||"")
@@ -245,6 +352,10 @@ async function sendMessage(){
             answer+=textChunk;
             updateAnswer();
             notice.textContent="ORVEX is responding...";
+          }
+
+          if(chunk.error){
+            throw new Error(chunk.error.message||"Gemini stream error.");
           }
         }
       }
@@ -299,7 +410,8 @@ async function sendMessage(){
     sendBtn.disabled=false;
     promptInput.focus();
   }
-  }
+       }
+  
   
   let recognition=null;
 function startVoiceInput(){
