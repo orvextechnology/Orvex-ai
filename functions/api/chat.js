@@ -98,7 +98,7 @@ export async function onRequestPost({ request, env }) {
 
       const content = String(
         item.content || item.text || ""
-      ).slice(0, 3000);
+      ).slice(0, 1200);
 
       return `${role}: ${content}`;
     }).join("\n\n");
