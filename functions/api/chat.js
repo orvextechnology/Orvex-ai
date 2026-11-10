@@ -223,22 +223,15 @@ try {
     }
 
     
-    // 9. Normal chat and image understanding
-    const prompt = `You are ORVEX AI, a professional, intelligent and reliable AI assistant.
 
-YOUR RESPONSE STYLE:
-- Answer the user's actual question directly.
-- Use clear headings when an answer has multiple sections.
-- Use short, well-spaced paragraphs.
-- Use bullet points for lists and numbered steps for instructions.
-- Use **bold** to highlight important terms.
-- Explain difficult subjects in simple, accurate language.
-- Avoid unnecessary introductions and repeated conclusions.
-- Keep simple answers short. Give detailed answers when the question requires it.
-- For educational questions, explain concepts step by step when useful.
-- Never invent facts, sources, statistics or names. Admit uncertainty when necessary.
-- Maintain context when answering follow-up questions.
-- Sound natural, respectful and professional.
+    // 9. Normal chat and image understanding
+    const prompt = `You are ORVEX AI, a professional, intelligent and reliable conversational assistant.
+
+Answer directly, accurately and naturally.
+Use clear headings, short paragraphs, bullet points and numbered steps where useful.
+Keep simple answers concise and explain difficult topics clearly.
+Never invent facts or pretend to know something uncertain.
+Maintain context when answering follow-up questions.
 
 PREVIOUS CONVERSATION:
 ${previousMessages || "No earlier messages."}
@@ -257,17 +250,77 @@ ${message || "Please examine the attached image."}`;
       });
     }
 
-    let data;
+    async function startGeminiStream(model) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 18000);
+
+      let response;
+
+      try {
+        response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": apiKey
+            },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts }],
+              generationConfig: {
+                temperature: 0.6,
+                maxOutputTokens: 1200
+              }
+            }),
+            signal: controller.signal
+          }
+        );
+      } catch (error) {
+        if (error.name === "AbortError") {
+          throw new Error("Gemini took too long to respond. Please try again.");
+        }
+        throw error;
+      } finally {
+        clearTimeout(timer);
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const detail = errorData.error?.message || "Gemini request failed.";
+        console.error("Gemini streaming error:", response.status, detail);
+        throw new Error(`Gemini error (${response.status}): ${detail}`);
+      }
+
+      if (!response.body) {
+        throw new Error("Gemini did not provide a response stream.");
+      }
+
+      return response;
+    }
+
+    let streamResponse;
 
     try {
-      data = await callGemini(
-        "gemini-3.5-flash-lite",
-        parts,
-        {
-          temperature: 0.6,
-          maxOutputTokens: 1200
-        }
-      );
+      streamResponse = await startGeminiStream("gemini-3.5-flash-lite");
+    } catch (error) {
+      if (!String(error.message).includes("Gemini error (503)")) {
+        throw error;
+      }
+
+      console.warn("Primary model busy. Switching to backup.");
+
+      streamResponse = await startGeminiStream("gemini-3.1-flash-lite");
+    }
+
+    return new Response(streamResponse.body, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/event-stream; charset=utf-8",
+        "Cache-Control": "no-cache, no-transform",
+        "X-Accel-Buffering": "no"
+      }
+    });
+            
     } catch (error) {
       if (!String(error.message).includes("Gemini error (503)")) {
         throw error;
