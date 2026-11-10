@@ -258,7 +258,7 @@ ${message || "Please examine the attached image."}`;
 
     async function startGeminiStream(model) {
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 18000);
+      const timer = setTimeout(() => controller.abort(), 60000);
 
       let response;
 
