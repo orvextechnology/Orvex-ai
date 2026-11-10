@@ -131,8 +131,10 @@ export async function onRequestPost({ request, env }) {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error("The AI service could not complete your request.");
-        }
+  const detail = data.error?.message || JSON.stringify(data);
+  console.error("Gemini API Error:", response.status, detail);
+  throw new Error(`Gemini error (${response.status}): ${detail}`);
+      }
 
         return data;
 
