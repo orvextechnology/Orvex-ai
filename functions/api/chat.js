@@ -174,11 +174,25 @@ export async function onRequestPost({ request, env }) {
         });
       }
 
-      const data = await callGemini(
-        "gemini-3.1-flash-image",
-        parts,
-        { responseModalities: ["TEXT", "IMAGE"] }
-      );
+      let data;
+
+try {
+  data = await callGemini(
+    "gemini-3.1-flash-lite",
+    parts
+  );
+} catch (error) {
+  if (!String(error.message).includes("Gemini error (503)")) {
+    throw error;
+  }
+
+  console.warn("Primary Gemini model busy. Switching to backup.");
+
+  data = await callGemini(
+    "gemini-3.5-flash-lite",
+    parts
+  );
+}
 
       const output = data.candidates?.[0]?.content?.parts || [];
 
