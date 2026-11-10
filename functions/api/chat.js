@@ -298,18 +298,57 @@ ${message || "Please examine the attached image."}`;
       return response;
     }
 
+    
     let streamResponse;
 
+    async function tryModelWithRetry(model) {
+      let lastError;
+
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          return await startGeminiStream(model);
+        } catch (error) {
+          lastError = error;
+
+          const isBusy = String(error.message).includes("503");
+
+          if (!isBusy) {
+            throw error;
+          }
+
+          console.warn(`${model} is busy. Attempt ${attempt} failed.`);
+
+          if (attempt < 2) {
+            await new Promise(resolve => setTimeout(resolve, 800));
+          }
+        }
+      }
+
+      throw lastError;
+    }
+
     try {
-      streamResponse = await startGeminiStream("gemini-3.5-flash-lite");
+      streamResponse = await tryModelWithRetry("gemini-3.5-flash-lite");
+
     } catch (error) {
-      if (!String(error.message).includes("Gemini error (503)")) {
+      if (!String(error.message).includes("503")) {
         throw error;
       }
 
-      console.warn("Primary model busy. Switching to backup.");
+      console.warn("Primary model unavailable. Switching to backup.");
 
-      streamResponse = await startGeminiStream("gemini-3.1-flash-lite");
+      try {
+        streamResponse = await tryModelWithRetry("gemini-3.1-flash-lite");
+
+      } catch (backupError) {
+        if (!String(backupError.message).includes("503")) {
+          throw backupError;
+        }
+
+        throw new Error(
+          "ORVEX AI is experiencing high demand right now. Please try again shortly."
+        );
+      }
     }
 
     return new Response(streamResponse.body, {
@@ -320,6 +359,7 @@ ${message || "Please examine the attached image."}`;
         "X-Accel-Buffering": "no"
       }
     });
+      
             
     } catch (error) {
       if (!String(error.message).includes("Gemini error (503)")) {
