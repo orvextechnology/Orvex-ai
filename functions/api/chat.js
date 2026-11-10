@@ -391,7 +391,19 @@ ${message || "Please examine the attached image."}`;
     return new Response(JSON.stringify({
       answer
     }), { status: 200, headers });
-      
+     
+  } catch (error) {
+    console.error("ORVEX API error:", error);
+
+    return new Response(JSON.stringify({
+      error: error.message || "Something went wrong. Please try again."
+    }), {
+      status: 500,
+      headers
+    });
+  }
+}
+
 
 export async function onRequest({ request }) {
   if (request.method === "OPTIONS") {
