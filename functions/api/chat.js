@@ -58,7 +58,7 @@ export async function onRequestPost({ request, env }) {
       : "";
 
     const history = Array.isArray(body.history)
-      ? body.history.slice(-12)
+      ? body.history.slice(-6)
       : [];
 
     const image = body.image || null;
