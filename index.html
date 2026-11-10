@@ -200,6 +200,154 @@ async function sendMessage(){
       {role:"assistant",text:answer}
     );
 
+
+async function sendMessage(){
+  if(isSending)return;
+
+  const text=promptInput.value.trim();
+  const mode=document.getElementById("mode").value;
+
+  if(!text&&!selectedImage&&mode!=="generate_image"){
+    notice.textContent="Type a message or attach an image.";
+    return;
+  }
+
+  if(!auth.currentUser){
+    notice.textContent="Please log in first.";
+    return;
+  }
+
+  if(mode==="edit_image"&&!selectedImage){
+    notice.textContent="Attach the picture you want to edit first.";
+    return;
+  }
+
+  isSending=true;
+  sendBtn.disabled=true;
+  notice.textContent="ORVEX is connecting...";
+
+  const imageForMessage=selectedImageUrl;
+  const imageData=selectedImage;
+  const userText=text||(mode==="generate_image"?"Generate an image.":"Please examine this image.");
+
+  addMessage("user",userText,imageForMessage);
+  promptInput.value="";
+  clearImagePreview();
+
+  try{
+    const idToken=await auth.currentUser.getIdToken();
+
+    const res=await fetch("/api/chat",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+idToken
+      },
+      body:JSON.stringify({
+        message:userText,
+        history:conversationHistory.slice(-12),
+        image:imageData,
+        action:mode==="understand_image"?"chat":mode
+      })
+    });
+
+    if(!res.ok){
+      const errorData=await res.json().catch(()=>({}));
+      throw new Error(errorData.error||errorData.message||"The AI request failed.");
+    }
+
+    let answer="";
+
+    if(mode==="generate_image"||mode==="edit_image"){
+      const data=await res.json();
+
+      answer=data.answer||"I couldn't generate a response.";
+
+      const imageUrl=data.image?.data
+        ?`data:${data.image.mimeType||"image/png"};base64,${data.image.data}`
+        :null;
+
+      addMessage("assistant",answer,imageUrl);
+
+    }else{
+      if(!res.body){
+        throw new Error("Streaming is not supported by this browser.");
+      }
+
+      const assistantMessage=addMessage("assistant","");
+      const reader=res.body.getReader();
+      const decoder=new TextDecoder();
+      let buffer="";
+
+      function updateAnswer(){
+        const oldFormatted=assistantMessage.querySelector(".formatted-answer");
+
+        if(oldFormatted){
+          oldFormatted.outerHTML=formatAnswer(answer);
+        }
+
+        messages.scrollTop=messages.scrollHeight;
+      }
+
+      function processEvent(event){
+        for(const line of event.split(/\r?\n/)){
+          if(!line.startsWith("data:"))continue;
+
+          const raw=line.slice(5).trim();
+
+          if(!raw||raw==="[DONE]")continue;
+
+          const chunk=JSON.parse(raw);
+
+          const textChunk=(chunk.candidates?.[0]?.content?.parts||[])
+            .map(part=>part.text||"")
+            .join("");
+
+          if(textChunk){
+            answer+=textChunk;
+            updateAnswer();
+            notice.textContent="ORVEX is responding...";
+          }
+        }
+      }
+
+      while(true){
+        const {value,done}=await reader.read();
+
+        if(done)break;
+
+        buffer+=decoder.decode(value,{stream:true});
+
+        const events=buffer.split(/\r?\n\r?\n/);
+        buffer=events.pop()||"";
+
+        for(const event of events){
+          processEvent(event);
+        }
+      }
+
+      buffer+=decoder.decode();
+
+      if(buffer.trim()){
+        processEvent(buffer);
+      }
+
+      if(!answer.trim()){
+        throw new Error("Gemini returned an empty answer.");
+      }
+
+      const speakButton=assistantMessage.querySelector(".message-actions button");
+
+      if(speakButton){
+        speakButton.onclick=()=>speakText(answer);
+      }
+    }
+
+    conversationHistory.push(
+      {role:"user",text:userText},
+      {role:"assistant",text:answer}
+    );
+
     await saveConversation();
     notice.textContent="ORVEX is ready.";
 
@@ -214,6 +362,7 @@ async function sendMessage(){
     promptInput.focus();
   }
   }
+  
   let recognition=null;
 function startVoiceInput(){
   const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
