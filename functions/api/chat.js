@@ -150,6 +150,7 @@ export async function onRequestPost({ request, env }) {
       }
     }
 
+    
     // 8. Image generation and editing
     if (action === "generate_image" || action === "edit_image") {
 
@@ -160,8 +161,8 @@ export async function onRequestPost({ request, env }) {
       }
 
       const prompt = action === "edit_image"
-        ? `Edit the attached image according to these instructions: ${message}`
-        : `Create an image based on this description: ${message}`;
+        ? `Edit the attached image according to these instructions: ${message}. Preserve the person's identity and other details unless the user specifically requests a change. Return the edited image.`
+        : `Generate an actual image based on this description: ${message}. Return the generated image, not just a description or instructions.`;
 
       const parts = [{ text: prompt }];
 
@@ -176,23 +177,25 @@ export async function onRequestPost({ request, env }) {
 
       let data;
 
-try {
-  data = await callGemini(
-    "gemini-3.1-flash-lite",
-    parts
-  );
-} catch (error) {
-  if (!String(error.message).includes("Gemini error (503)")) {
-    throw error;
-  }
+      try {
+        data = await callGemini(
+          "gemini-3.1-flash-image",
+          parts,
+          {
+            responseModalities: ["TEXT", "IMAGE"]
+          }
+        );
+      } catch (error) {
+        console.warn("Primary image model failed:", error.message);
 
-  console.warn("Primary Gemini model busy. Switching to backup.");
-
-  data = await callGemini(
-    "gemini-3.5-flash-lite",
-    parts
-  );
-}
+        data = await callGemini(
+          "gemini-2.5-flash-image",
+          parts,
+          {
+            responseModalities: ["TEXT", "IMAGE"]
+          }
+        );
+      }
 
       const output = data.candidates?.[0]?.content?.parts || [];
 
@@ -207,20 +210,23 @@ try {
         if (inline?.data) {
           generatedImage = {
             data: inline.data,
-            mimeType: inline.mimeType || "image/png"
+            mimeType: inline.mimeType || inline.mime_type || "image/png"
           };
         }
       }
 
       if (!generatedImage) {
-        throw new Error(answer || "The image model did not return an image.");
+        throw new Error(
+          answer || "The image model did not return an image. Please try again."
+        );
       }
 
       return new Response(JSON.stringify({
         answer: answer || "ORVEX has created your image.",
         image: generatedImage
       }), { status: 200, headers });
-    }
+      }
+    
 
     
 
