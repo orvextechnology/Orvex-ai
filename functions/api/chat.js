@@ -18,11 +18,12 @@ export async function onRequestPost({ request, env }) {
       return jsonResponse({ error: "Method not allowed." }, 405);
     }
 
-    if (!env.ORVEX_GEMINI_KEY) {
-      return jsonResponse({
-        error: "The AI service is not configured yet."
-      }, 503);
-    }
+    return jsonResponse({
+  diagnostic: {
+    geminiKeyExists: Boolean(env.ORVEX_GEMINI_KEY),
+    environment: env.ORVEX_GEMINI_KEY ? "key detected" : "key missing"
+  }
+});
 
     // 1. Verify the user's Firebase login token.
     const authorization = request.headers.get("Authorization") || "";
