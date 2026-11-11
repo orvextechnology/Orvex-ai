@@ -282,7 +282,10 @@ async function logout(){
 }
 
 document.getElementById("createAccountBtn").onclick = createAccount;
-document.getElementById("loginBtn").onclick = login;
+document.getElementById("loginBtn").onclick = function(){
+  alert("Login function found");
+  login();
+};
 document.getElementById("logoutBtn").addEventListener("click",logout);
 
 auth.onAuthStateChanged(async user=>{
