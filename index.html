@@ -275,7 +275,8 @@ async function login(){
     setAuthStatus(e.message);
   }
 }
-
+window.login = login;
+window.createAccount = createAccount;
 async function logout(){
   stopSpeaking();
   await auth.signOut();
