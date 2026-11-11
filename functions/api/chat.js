@@ -18,12 +18,14 @@ export async function onRequestPost({ request, env }) {
       return jsonResponse({ error: "Method not allowed." }, 405);
     }
 
-    return jsonResponse({
-  diagnostic: {
-    geminiKeyExists: Boolean(env.ORVEX_GEMINI_KEY),
-    environment: env.ORVEX_GEMINI_KEY ? "key detected" : "key missing"
-  }
+    
+return jsonResponse({
+  success: true,
+  reply: env.ORVEX_GEMINI_KEY
+    ? "DIAGNOSTIC RESULT: Gemini key detected."
+    : "DIAGNOSTIC RESULT: Gemini key missing."
 });
+    
 
     // 1. Verify the user's Firebase login token.
     const authorization = request.headers.get("Authorization") || "";
