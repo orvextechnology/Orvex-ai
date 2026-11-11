@@ -210,29 +210,6 @@ async function sendMessage(){
 
       addMessage("assistant",answer,imageUrl);
 
-    }else{
-      if(!res.body){
-        throw new Error("Streaming is not supported by this browser.");
-      }
-
-      const assistantMessage=addMessage("assistant","");
-      const reader=res.body.getReader();
-      const decoder=new TextDecoder();
-      let buffer="";
-
-      function updateAnswer(){
-        const oldFormatted=assistantMessage.querySelector(".formatted-answer");
-
-        if(oldFormatted){
-          oldFormatted.outerHTML=formatAnswer(answer);
-        }
-
-        messages.scrollTop=messages.scrollHeight;
-      }
-
-      function processEvent(event){
-        for(const line of event.split(/\r?\n/)){
-          if(!line.startsWith("data:"))continue;
 
 async function sendMessage(){
   if(isSending)return;
