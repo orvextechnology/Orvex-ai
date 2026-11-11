@@ -281,7 +281,7 @@ async function logout(){
   await auth.signOut();
 }
 
-document.getElementById("createAccountBtn").addEventListener("click",createAccount);
+document.getElementById("createAccountBtn").onclick = createAccount;
 document.getElementById("loginBtn").onclick = login;
 document.getElementById("logoutBtn").addEventListener("click",logout);
 
