@@ -282,7 +282,7 @@ async function logout(){
 }
 
 document.getElementById("createAccountBtn").addEventListener("click",createAccount);
-document.getElementById("loginBtn").addEventListener("click",login);
+document.getElementById("loginBtn").onclick = login;
 document.getElementById("logoutBtn").addEventListener("click",logout);
 
 auth.onAuthStateChanged(async user=>{
