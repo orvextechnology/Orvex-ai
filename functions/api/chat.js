@@ -18,7 +18,7 @@ export async function onRequestPost({ request, env }) {
       return jsonResponse({ error: "Method not allowed." }, 405);
     }
 
-    if (!env.GEMINI_API_KEY) {
+    if (!env.ORVEX_GEMINI_KEY) {
       return jsonResponse({
         error: "The AI service is not configured yet."
       }, 503);
@@ -197,7 +197,7 @@ export async function onRequestPost({ request, env }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-goog-api-key": env.GEMINI_API_KEY
+          "x-goog-api-key": env.ORVEX_GEMINI_KEY
         },
         body: JSON.stringify({
           systemInstruction: {
