@@ -1,362 +1,257 @@
+
 const FIREBASE_API_KEY = "AIzaSyD4oCtqtD8U1wnErSP10iu2sIr0XzaqrQs";
+const GEMINI_MODEL = "gemini-2.5-flash";
+
+function jsonResponse(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store"
+    }
+  });
+}
 
 export async function onRequestPost({ request, env }) {
-  const headers = {
-    "Content-Type": "application/json"
-  };
-
   try {
-    // 1. Check Firebase login token
-    const authorization = request.headers.get("Authorization") || "";
-    const token = authorization.startsWith("Bearer ")
-      ? authorization.slice(7)
-      : "";
-
-    if (!token) {
-      return new Response(JSON.stringify({
-        error: "Please sign in to use ORVEX AI."
-      }), { status: 401, headers });
+    if (request.method !== "POST") {
+      return jsonResponse({ error: "Method not allowed." }, 405);
     }
 
-    // 2. Verify the token with Firebase
-    const verification = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${FIREBASE_API_KEY}`,
+    if (!env.GEMINI_API_KEY) {
+      return jsonResponse({
+        error: "The AI service is not configured yet."
+      }, 503);
+    }
+
+    // 1. Verify the user's Firebase login token.
+    const authorization = request.headers.get("Authorization") || "";
+    const tokenMatch = authorization.match(/^Bearer\s+(.+)$/i);
+
+    if (!tokenMatch) {
+      return jsonResponse({ error: "Please log in first." }, 401);
+    }
+
+    const firebaseResponse = await fetch(
+      "https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=" +
+      FIREBASE_API_KEY,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken: token })
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          idToken: tokenMatch[1]
+        })
       }
     );
 
-    if (!verification.ok) {
-      return new Response(JSON.stringify({
-        error: "Your session is invalid. Please sign in again."
-      }), { status: 401, headers });
+    if (!firebaseResponse.ok) {
+      return jsonResponse({
+        error: "Your login session is invalid or expired. Please log in again."
+      }, 401);
     }
 
-    const account = await verification.json();
-    const user = account.users?.[0];
+    const firebaseData = await firebaseResponse.json();
+    const user = firebaseData.users && firebaseData.users[0];
 
-    if (!user || user.disabled === true) {
-      return new Response(JSON.stringify({
-        error: "Your account could not be verified."
-      }), { status: 401, headers });
+    if (!user || user.disabled) {
+      return jsonResponse({
+        error: "This account is unavailable. Please log in again."
+      }, 401);
     }
 
-    // 3. Check Gemini API key
-    const apiKey = env.GEMINI_API_KEY;
+    // 2. Read and validate the request.
+    const contentLength = Number(
+      request.headers.get("Content-Length") || 0
+    );
 
-    if (!apiKey) {
-      throw new Error("AI service is not configured.");
+    if (contentLength > 7 * 1024 * 1024) {
+      return jsonResponse({
+        error: "Your request is too large. Please use a smaller image."
+      }, 413);
     }
 
-    // 4. Read request
     const body = await request.json();
 
     const message = typeof body.message === "string"
-      ? body.message.trim().slice(0, 10000)
+      ? body.message.trim()
       : "";
 
-    const history = Array.isArray(body.history)
-      ? body.history.slice(-6)
-      : [];
+    const mode = typeof body.mode === "string"
+      ? body.mode
+      : "chat";
 
-    const image = body.image || null;
-    const action = body.action || "chat";
+    const image = typeof body.image === "string"
+      ? body.image
+      : "";
+
+    if (!["chat", "analyze_image"].includes(mode)) {
+      return jsonResponse({
+        error: "This feature is not connected yet. Image generation and editing are coming in a later rebuild stage."
+      }, 501);
+    }
 
     if (!message && !image) {
-      return new Response(JSON.stringify({
+      return jsonResponse({
         error: "Please enter a message or attach an image."
-      }), { status: 400, headers });
+      }, 400);
     }
 
-    // 5. Validate uploaded image
-    if (image) {
-      const validTypes = [
-        "image/jpeg",
-        "image/png",
-        "image/webp"
-      ];
+    if (message.length > 12000) {
+      return jsonResponse({
+        error: "Your message is too long."
+      }, 413);
+    }
 
+    // 3. Prepare the conversation history.
+    const parts = [];
+    const contents = [];
+
+    if (Array.isArray(body.history)) {
+      const history = body.history.slice(-20);
+
+      // The frontend includes the current message in history.
+      // Remove that final copy because it will be added below.
       if (
-        typeof image !== "object" ||
-        !validTypes.includes(image.mimeType) ||
-        typeof image.data !== "string" ||
-        image.data.length > 7000000
+        history.length > 0 &&
+        history[history.length - 1].role === "user" &&
+        history[history.length - 1].content === message
       ) {
-        return new Response(JSON.stringify({
-          error: "Invalid image or image too large. Use JPG, PNG, or WEBP."
-        }), { status: 400, headers });
-      }
-    }
-
-    // 6. Prepare conversation history
-    const previousMessages = history.map(item => {
-      const role = item.role === "assistant"
-        ? "ORVEX AI"
-        : "User";
-
-      const content = String(
-        item.content || item.text || ""
-      ).slice(0, 1200);
-
-      return `${role}: ${content}`;
-    }).join("\n\n");
-
-    // 7. Gemini request function
-    async function callGemini(model, parts, config = {}) {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 18000);
-
-      try {
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-goog-api-key": apiKey
-            },
-            body: JSON.stringify({
-              contents: [{
-                role: "user",
-                parts
-              }],
-              generationConfig: config
-            }),
-            signal: controller.signal
-          }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-  const detail = data.error?.message || JSON.stringify(data);
-  console.error("Gemini API Error:", response.status, detail);
-  throw new Error(`Gemini error (${response.status}): ${detail}`);
+        history.pop();
       }
 
-        return data;
+      for (const item of history) {
+        if (!item || typeof item.content !== "string") continue;
 
-      } catch (error) {
-        if (error.name === "AbortError") {
-          throw new Error("Gemini took too long to respond. Please try again.");
-        }
+        const content = item.content.trim();
+        if (!content || content.length > 12000) continue;
 
-        throw error;
+        const role = item.role === "assistant" ||
+          item.role === "model"
+          ? "model"
+          : item.role === "user"
+            ? "user"
+            : null;
 
-      } finally {
-        clearTimeout(timer);
-      }
-    }
+        if (!role) continue;
 
-    
-    // 8. Image generation and editing
-    if (action === "generate_image" || action === "edit_image") {
+        // Skip consecutive messages with the same role.
+        const previous = contents[contents.length - 1];
 
-      if (action === "edit_image" && !image) {
-        return new Response(JSON.stringify({
-          error: "Attach the picture you want ORVEX to edit first."
-        }), { status: 400, headers });
-      }
+        if (previous && previous.role === role) continue;
 
-      const prompt = action === "edit_image"
-        ? `Edit the attached image according to these instructions: ${message}. Preserve the person's identity and other details unless the user specifically requests a change. Return the edited image.`
-        : `Generate an actual image based on this description: ${message}. Return the generated image, not just a description or instructions.`;
-
-      const parts = [{ text: prompt }];
-
-      if (image) {
-        parts.push({
-          inline_data: {
-            mime_type: image.mimeType,
-            data: image.data
-          }
+        contents.push({
+          role,
+          parts: [{ text: content }]
         });
       }
+    }
 
-      let data;
-
-      try {
-        data = await callGemini(
-          "gemini-3.1-flash-image",
-          parts,
-          {
-            responseModalities: ["TEXT", "IMAGE"]
-          }
-        );
-      } catch (error) {
-        console.warn("Primary image model failed:", error.message);
-
-        data = await callGemini(
-          "gemini-2.5-flash-image",
-          parts,
-          {
-            responseModalities: ["TEXT", "IMAGE"]
-          }
-        );
-      }
-
-      const output = data.candidates?.[0]?.content?.parts || [];
-
-      let answer = "";
-      let generatedImage = null;
-
-      for (const part of output) {
-        if (part.text) answer += part.text;
-
-        const inline = part.inlineData || part.inline_data;
-
-        if (inline?.data) {
-          generatedImage = {
-            data: inline.data,
-            mimeType: inline.mimeType || inline.mime_type || "image/png"
-          };
-        }
-      }
-
-      if (!generatedImage) {
-        throw new Error(
-          answer || "The image model did not return an image. Please try again."
-        );
-      }
-
-      return new Response(JSON.stringify({
-        answer: answer || "ORVEX has created your image.",
-        image: generatedImage
-      }), { status: 200, headers });
-      }
-    
-
-    
-
-    // 9. Normal chat and image understanding
-    const prompt = `You are ORVEX AI, a professional, intelligent and reliable conversational assistant.
-
-Answer directly, accurately and naturally.
-Use clear headings, short paragraphs, bullet points and numbered steps where useful.
-Keep simple answers concise and explain difficult topics clearly.
-Never invent facts or pretend to know something uncertain.
-Maintain context when answering follow-up questions.
-
-PREVIOUS CONVERSATION:
-${previousMessages || "No earlier messages."}
-
-CURRENT MESSAGE:
-${message || "Please examine the attached image."}`;
-
-    const parts = [{ text: prompt }];
-
+    // 4. Add the current message.
     if (image) {
+      const imageMatch = image.match(
+        /^data:(image\/(?:jpeg|jpg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/
+      );
+
+      if (!imageMatch) {
+        return jsonResponse({
+          error: "The attached image format is not supported."
+        }, 400);
+      }
+
+      const mimeType = imageMatch[1] === "image/jpg"
+        ? "image/jpeg"
+        : imageMatch[1];
+
+      const base64Data = imageMatch[2];
+
+      if (base64Data.length > 6 * 1024 * 1024) {
+        return jsonResponse({
+          error: "The image is too large. Please choose a smaller image."
+        }, 413);
+      }
+
       parts.push({
-        inline_data: {
-          mime_type: image.mimeType,
-          data: image.data
+        inlineData: {
+          mimeType,
+          data: base64Data
         }
       });
     }
 
-    async function startGeminiStream(model) {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 60000);
+    parts.push({
+      text: message || "Please describe and analyze this image."
+    });
 
-      let response;
+    contents.push({
+      role: "user",
+      parts
+    });
 
-      try {
-        response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-goog-api-key": apiKey
-            },
-            body: JSON.stringify({
-              contents: [{ role: "user", parts }],
-              generationConfig: {
-                temperature: 0.6,
-                maxOutputTokens: 1200
-              }
-            }),
-            signal: controller.signal
-          }
-        );
-      } catch (error) {
-        if (error.name === "AbortError") {
-          throw new Error("Gemini took too long to respond. Please try again.");
-        }
-        throw error;
-      } finally {
-        clearTimeout(timer);
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const detail = errorData.error?.message || "Gemini request failed.";
-        console.error("Gemini streaming error:", response.status, detail);
-        throw new Error(`Gemini error (${response.status}): ${detail}`);
-      }
-
-      if (!response.body) {
-        throw new Error("Gemini did not provide a response stream.");
-      }
-
-      return response;
-    }
-
-    
-    let streamResponse;
-
-        const data = await callGemini(
-      "gemini-2.5-flash",
-      parts,
+    // 5. Send the request to Gemini.
+    const geminiResponse = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/" +
+      GEMINI_MODEL + ":generateContent",
       {
-        temperature: 0.6,
-        maxOutputTokens: 1200
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": env.GEMINI_API_KEY
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{
+              text:
+                "You are ORVEX AI, a helpful, intelligent and professional AI assistant. " +
+                "Give clear, accurate and useful answers. " +
+                "When users provide images, examine them carefully. " +
+                "Be honest when you are uncertain. " +
+                "Do not claim to have performed actions you have not performed."
+            }]
+          },
+          contents,
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1800
+          }
+        })
       }
     );
 
-    const answer = (data.candidates?.[0]?.content?.parts || [])
-      .map(part => part.text || "")
-      .join("");
+    const geminiData = await geminiResponse.json();
 
-    if (!answer.trim()) {
-      throw new Error("Gemini returned an empty answer. Please try again.");
+    if (!geminiResponse.ok) {
+      return jsonResponse({
+        error: "The AI provider could not complete your request. Please try again."
+      }, 502);
     }
 
-    return new Response(JSON.stringify({
-      answer: answer
-    }), {
-      status: 200,
-      headers
+    // 6. Extract the AI answer.
+    const reply = (
+      geminiData.candidates?.[0]?.content?.parts || []
+    )
+      .map(function(part) {
+        return part.text || "";
+      })
+      .join("")
+      .trim();
+
+    if (!reply) {
+      return jsonResponse({
+        error: "ORVEX received an empty response. Please try again."
+      }, 502);
+    }
+
+    return jsonResponse({
+      success: true,
+      reply
     });
-  
-      
-            
-    
-     
+
   } catch (error) {
-    console.error("ORVEX API error:", error);
-
-    return new Response(JSON.stringify({
-      error: error.message || "Something went wrong. Please try again."
-    }), {
-      status: 500,
-      headers
-    });
+    return jsonResponse({
+      error: "An unexpected server error occurred. Please try again."
+    }, 500);
   }
-}
-
-
-export async function onRequest({ request }) {
-  if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204 });
-  }
-
-  return new Response(JSON.stringify({
-    error: "Method not allowed."
-  }), {
-    status: 405,
-    headers: { "Content-Type": "application/json" }
-  });
-}
+        }
+    
