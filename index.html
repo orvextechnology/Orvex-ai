@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,22 +10,97 @@
 <link rel="icon" href="/icons/orvex.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <title>ORVEX AI</title>
+
 <style>
 :root{--bg:#080d20;--panel:#101a35;--panel2:#162343;--purple:#8b5cf6;--cyan:#38bdf8;--text:#f4f6ff;--muted:#aab5d1;--line:#263657}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#17264a 0,var(--bg) 48%);color:var(--text);font-family:Arial,sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#17264a 0,var(--bg) 48%);color:var(--text);font-family:Arial,sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
 header{min-height:68px;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);background:#080d20ef;position:sticky;top:0;z-index:5}
-.brand-wrap{display:flex;align-items:center;gap:10px}.brand-icon{width:42px;height:42px;flex:none}.brand{font-size:21px;font-weight:800;letter-spacing:2px;background:linear-gradient(90deg,#fff,#a78bfa,var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}.brand small{display:block;margin-top:3px;color:#9aa9cd;font-size:9px;letter-spacing:4px}
-.header-actions{display:flex;align-items:center;gap:8px}#userLabel{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:12px}
-.btn{padding:10px 13px;color:white;background:#1a294a;border:1px solid #34466c;border-radius:10px}.btn.primary{background:linear-gradient(110deg,#7045db,#287fc4);border:0}.btn:disabled{opacity:.55;cursor:not-allowed}
-main{width:100%;max-width:1200px;margin:auto;padding:22px 16px}.auth-card{max-width:420px;margin:8vh auto;padding:28px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 20px 60px #0006}.auth-card h1{text-align:center;margin:0 0 10px}.sub{color:var(--muted);text-align:center;line-height:1.5}.field{width:100%;margin:8px 0;padding:13px;color:white;background:#080f25;border:1px solid #33466d;border-radius:10px;outline:none}.field:focus,textarea:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 2px #8b5cf633}.auth-buttons{display:flex;gap:10px;margin-top:10px}.auth-buttons button{flex:1}.status{min-height:22px;margin-top:10px;color:#fca5a5;font-size:13px;overflow-wrap:anywhere}
-.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:18px;min-height:calc(100vh - 112px)}.sidebar,.chat-panel,.welcome{background:#0f1932ef;border:1px solid var(--line);border-radius:16px}.sidebar{height:calc(100vh - 110px);min-height:400px;padding:14px;position:sticky;top:82px;display:flex;flex-direction:column}.sidebar>.btn{width:100%;margin-bottom:12px}.history-title{margin:12px 5px;color:var(--muted);font-size:12px}#historyList{overflow:auto}.history-item{display:block;width:100%;margin:3px 0;padding:10px;color:#dbe5ff;text-align:left;background:transparent;border:0;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.history-item:hover{background:#1b2a4c}
-.chat-panel{min-height:calc(100vh - 112px);display:flex;flex-direction:column;overflow:hidden}.chat-top{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}.chat-top span{color:var(--muted);font-size:12px}#messages{flex:1;min-height:350px;max-height:calc(100vh - 310px);overflow-y:auto;padding:20px}.welcome{max-width:650px;margin:12px auto;padding:28px;text-align:center;background:linear-gradient(140deg,#17264a,#111a34)}.welcome h1{margin-bottom:10px;font-size:30px}.welcome p{color:var(--muted);line-height:1.6}.welcome-logo{width:76px;height:76px}.features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:20px}.feature{padding:13px;color:#cbd7f3;background:#0b1430;border:1px solid var(--line);border-radius:10px;font-size:13px}
-.message{max-width:850px;margin:0 auto 18px;padding:15px;border:1px solid var(--line);border-radius:14px;overflow-wrap:anywhere}.message.user{background:#17264a}.message.assistant{background:#101a35}.role{margin-bottom:9px;color:#a78bfa;font-size:11px;font-weight:bold;letter-spacing:1px}.message img{display:block;max-width:100%;max-height:420px;margin-top:12px;border-radius:10px}.formatted-answer{line-height:1.7}.formatted-answer p{margin:0 0 12px}.formatted-answer h2,.formatted-answer h3{margin:18px 0 8px;color:#c4b5fd}.formatted-answer ul,.formatted-answer ol{padding-left:24px;margin:8px 0 14px}.formatted-answer li{margin:5px 0}.message-actions{margin-top:12px}.message-actions button{padding:7px 10px;color:#dbeafe;background:#1a294a;border:1px solid #34466c;border-radius:8px}
-.composer{padding:14px;border-top:1px solid var(--line);background:#0b1430}.composer-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}select{max-width:100%;padding:9px;color:white;background:#101a35;border:1px solid #34466c;border-radius:9px}.file-label{display:inline-flex;align-items:center;padding:9px 11px;color:#dbeafe;background:#1a294a;border:1px solid #34466c;border-radius:9px;cursor:pointer;font-size:13px}#imageInput{display:none}#imagePreview{display:flex;align-items:center;gap:10px;margin:8px 0;color:var(--muted);font-size:12px}#imagePreview img{width:58px;height:58px;object-fit:cover;border-radius:8px}#imagePreview button{padding:6px 9px;color:white;background:#263657;border:0;border-radius:7px}.compose-row{display:flex;align-items:flex-end;gap:8px}#prompt{flex:1;min-width:0;min-height:48px;max-height:150px;resize:vertical;padding:13px;color:white;background:#101a35;border:1px solid #34466c;border-radius:12px;outline:none}#notice{min-height:18px;margin-top:8px;color:var(--muted);font-size:12px}
-@media(max-width:760px){main{padding:12px 9px}.layout{grid-template-columns:1fr;gap:10px}.sidebar{position:static;height:auto;min-height:0}#historyList{max-height:120px}.chat-panel{min-height:68vh}#messages{max-height:none;min-height:300px;padding:12px}.welcome{padding:20px 14px}.welcome h1{font-size:24px}header{padding:9px 12px}.brand{font-size:18px}#userLabel{display:none}.btn{padding:9px 10px}}
-@media(max-width:390px){.features{grid-template-columns:1fr}.auth-card{padding:20px}.compose-row{flex-wrap:wrap}#prompt{flex-basis:100%}}
+.brand-wrap{display:flex;align-items:center;gap:10px}
+.brand-icon{width:42px;height:42px;flex:none}
+.brand{font-size:21px;font-weight:800;letter-spacing:2px;background:linear-gradient(90deg,#fff,#a78bfa,var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand small{display:block;margin-top:3px;color:#9aa9cd;font-size:9px;letter-spacing:4px}
+.header-actions{display:flex;align-items:center;gap:8px}
+#userLabel{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:12px}
+.btn{padding:10px 13px;color:white;background:#1a294a;border:1px solid #34466c;border-radius:10px}
+.btn.primary{background:linear-gradient(110deg,#7045db,#287fc4);border:0}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+main{width:100%;max-width:1200px;margin:auto;padding:22px 16px}
+.auth-card{max-width:420px;margin:8vh auto;padding:28px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 20px 60px #0006}
+.auth-card h1{text-align:center;margin:0 0 10px}
+.sub{color:var(--muted);text-align:center;line-height:1.5}
+.field{width:100%;margin:8px 0;padding:13px;color:white;background:#080f25;border:1px solid #33466d;border-radius:10px;outline:none}
+.field:focus,textarea:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 2px #8b5cf633}
+.auth-buttons{display:flex;gap:10px;margin-top:10px}
+.auth-buttons button{flex:1}
+.status{min-height:22px;margin-top:10px;color:#fca5a5;font-size:13px;overflow-wrap:anywhere}
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:18px;min-height:calc(100vh - 112px)}
+.sidebar,.chat-panel,.welcome{background:#0f1932ef;border:1px solid var(--line);border-radius:16px}
+.sidebar{height:calc(100vh - 110px);min-height:400px;padding:14px;position:sticky;top:82px;display:flex;flex-direction:column}
+.sidebar>.btn{width:100%;margin-bottom:12px}
+.history-title{margin:12px 5px;color:var(--muted);font-size:12px}
+#historyList{overflow:auto}
+.history-item{display:block;width:100%;margin:3px 0;padding:10px;color:#dbe5ff;text-align:left;background:transparent;border:0;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-item:hover{background:#1b2a4c}
+.chat-panel{min-height:calc(100vh - 112px);display:flex;flex-direction:column;overflow:hidden}
+.chat-top{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.chat-top span{color:var(--muted);font-size:12px}
+#messages{flex:1;min-height:350px;max-height:calc(100vh - 310px);overflow-y:auto;padding:20px}
+.welcome{max-width:650px;margin:12px auto;padding:28px;text-align:center;background:linear-gradient(140deg,#17264a,#111a34)}
+.welcome h1{margin-bottom:10px;font-size:30px}
+.welcome p{color:var(--muted);line-height:1.6}
+.welcome-logo{width:76px;height:76px}
+.features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:20px}
+.feature{padding:13px;color:#cbd7f3;background:#0b1430;border:1px solid var(--line);border-radius:10px;font-size:13px}
+.message{max-width:850px;margin:0 auto 18px;padding:15px;border:1px solid var(--line);border-radius:14px;overflow-wrap:anywhere}
+.message.user{background:#17264a}
+.message.assistant{background:#101a35}
+.role{margin-bottom:9px;color:#a78bfa;font-size:11px;font-weight:bold;letter-spacing:1px}
+.message img{display:block;max-width:100%;max-height:420px;margin-top:12px;border-radius:10px}
+.formatted-answer{line-height:1.7}
+.formatted-answer p{margin:0 0 12px}
+.formatted-answer h2,.formatted-answer h3{margin:18px 0 8px;color:#c4b5fd}
+.formatted-answer ul,.formatted-answer ol{padding-left:24px;margin:8px 0 14px}
+.formatted-answer li{margin:5px 0}
+.message-actions{margin-top:12px}
+.message-actions button{padding:7px 10px;color:#dbeafe;background:#1a294a;border:1px solid #34466c;border-radius:8px}
+.composer{padding:14px;border-top:1px solid var(--line);background:#0b1430}
+.composer-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}
+select{max-width:100%;padding:9px;color:white;background:#101a35;border:1px solid #34466c;border-radius:9px}
+.file-label{display:inline-flex;align-items:center;padding:9px 11px;color:#dbeafe;background:#1a294a;border:1px solid #34466c;border-radius:9px;cursor:pointer;font-size:13px}
+#imageInput{display:none}
+#imagePreview{display:flex;align-items:center;gap:10px;margin:8px 0;color:var(--muted);font-size:12px}
+#imagePreview img{width:58px;height:58px;object-fit:cover;border-radius:8px}
+#imagePreview button{padding:6px 9px;color:white;background:#263657;border:0;border-radius:7px}
+.compose-row{display:flex;align-items:flex-end;gap:8px}
+#prompt{flex:1;min-width:0;min-height:48px;max-height:150px;resize:vertical;padding:13px;color:white;background:#101a35;border:1px solid #34466c;border-radius:12px;outline:none}
+#notice{min-height:18px;margin-top:8px;color:var(--muted);font-size:12px}
+@media(max-width:760px){
+main{padding:12px 9px}
+.layout{grid-template-columns:1fr;gap:10px}
+.sidebar{position:static;height:auto;min-height:0}
+#historyList{max-height:120px}
+.chat-panel{min-height:68vh}
+#messages{max-height:none;min-height:300px;padding:12px}
+.welcome{padding:20px 14px}
+.welcome h1{font-size:24px}
+header{padding:9px 12px}
+.brand{font-size:18px}
+#userLabel{display:none}
+.btn{padding:9px 10px}
+}
+@media(max-width:390px){
+.features{grid-template-columns:1fr}
+.auth-card{padding:20px}
+.compose-row{flex-wrap:wrap}
+#prompt{flex-basis:100%}
+}
 </style>
 </head>
+
 <body>
 <header>
   <div class="brand-wrap">
@@ -34,9 +110,10 @@ main{width:100%;max-width:1200px;margin:auto;padding:22px 16px}.auth-card{max-wi
   <div class="header-actions">
     <span id="userLabel" class="hidden"></span>
     <button id="installBtn" class="btn hidden" type="button">Install App</button>
-    <button id="logoutBtn" class="btn hidden" type="button" onclick="logout()">Log out</button>
+    <button id="logoutBtn" class="btn hidden" type="button">Log out</button>
   </div>
 </header>
+
 <main>
   <section id="authSection" class="auth-card">
     <h1>ORVEX AI Account</h1>
@@ -44,172 +121,501 @@ main{width:100%;max-width:1200px;margin:auto;padding:22px 16px}.auth-card{max-wi
     <input id="email" class="field" type="email" placeholder="Email address" autocomplete="email">
     <input id="password" class="field" type="password" placeholder="Password (at least 6 characters)" autocomplete="current-password">
     <div class="auth-buttons">
-      <button class="btn primary" type="button" onclick="alert('BUTTON CLICK WORKS')">Create Account</button>
-      <button class="btn" type="button" onclick="alert('LOGIN BUTTON WORKS')">Log In</button>
-      
+      <button id="createAccountBtn" class="btn primary" type="button">Create Account</button>
+      <button id="loginBtn" class="btn" type="button">Log In</button>
     </div>
     <div id="authStatus" class="status" aria-live="polite"></div>
   </section>
+
   <section id="appSection" class="layout hidden">
     <aside class="sidebar">
       <button class="btn primary" type="button" onclick="newChat()">＋ New Chat</button>
       <div class="history-title">RECENT CONVERSATIONS</div>
       <div id="historyList"></div>
     </aside>
+
     <section class="chat-panel">
-      <div class="chat-top"><div><strong>ORVEX AI</strong><br><span>Your intelligent assistant</span></div><button class="btn" type="button" onclick="clearChat()">Clear chat</button></div>
+      <div class="chat-top">
+        <div><strong>ORVEX AI</strong><br><span>Your intelligent assistant</span></div>
+        <button class="btn" type="button" onclick="clearChat()">Clear chat</button>
+      </div>
+
       <div id="messages" aria-live="polite">
         <div class="welcome" id="welcome">
           <img class="welcome-logo" src="/icons/orvex.svg" alt="ORVEX">
-          <h1>Welcome to ORVEX AI</h1><p>Your intelligent AI assistant. Ask questions, upload images, or use your voice.</p>
-          <div class="features"><div class="feature">💬 AI Conversations</div><div class="feature">🖼️ Image Understanding</div><div class="feature">🎨 Image Generation</div><div class="feature">🎙️ Voice Assistant</div></div>
+          <h1>Welcome to ORVEX AI</h1>
+          <p>Your intelligent AI assistant. Ask questions, upload images, or use your voice.</p>
+          <div class="features">
+            <div class="feature">💬 AI Conversations</div>
+            <div class="feature">🖼️ Image Understanding</div>
+            <div class="feature">🎨 Image Generation</div>
+            <div class="feature">🎙️ Voice Assistant</div>
+          </div>
         </div>
       </div>
+
       <div class="composer">
         <div class="composer-tools">
-          <select id="mode" aria-label="Message mode"><option value="chat">Normal chat</option><option value="understand_image">Understand an image</option><option value="generate_image">Generate an image</option><option value="edit_image">Edit an uploaded image</option></select>
-          <label class="file-label" for="imageInput">＋ Add image</label><input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp">
-          <button class="btn" type="button" onclick="startVoiceInput()">🎙️ Voice</button><button class="btn" type="button" onclick="stopSpeaking()">Stop voice</button>
+          <select id="mode" aria-label="Message mode">
+            <option value="chat">Normal chat</option>
+            <option value="understand_image">Understand an image</option>
+            <option value="generate_image">Generate an image</option>
+            <option value="edit_image">Edit an uploaded image</option>
+          </select>
+          <label class="file-label" for="imageInput">＋ Add image</label>
+          <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp">
+          <button class="btn" type="button" onclick="startVoiceInput()">🎙️ Voice</button>
+          <button class="btn" type="button" onclick="stopSpeaking()">Stop voice</button>
         </div>
+
         <div id="imagePreview" class="hidden"></div>
-        <div class="compose-row"><textarea id="prompt" placeholder="Message ORVEX AI..." rows="1"></textarea><button id="sendBtn" class="btn primary" type="button" onclick="sendMessage()">Send</button></div>
+        <div class="compose-row">
+          <textarea id="prompt" placeholder="Message ORVEX AI..." rows="1"></textarea>
+          <button id="sendBtn" class="btn primary" type="button" onclick="sendMessage()">Send</button>
+        </div>
         <div id="notice" aria-live="polite">ORVEX AI is ready.</div>
       </div>
     </section>
   </section>
 </main>
-  
+
 <footer style="text-align:center;padding:25px 12px;color:#aab5d1;border-top:1px solid #263657;font-size:13px;">
-<div style="margin:25px auto 10px;text-align:center;">
-  <p style="color:#a5b4fc;font-size:12px;letter-spacing:3px;text-transform:uppercase;">
-    Created & Founded by
-  </p>
-  <h3 style="color:#c4b5fd;font-size:17px;letter-spacing:1px;margin:8px 0;">
-    OYETADE MAYOWA AYOMIDE
-  </h3>
-  <p style="color:#8b9bbd;font-size:11px;letter-spacing:2px;">
-    FOUNDER & CREATOR · ORVEX AI
-  </p>
-</div>
+  <div style="margin:25px auto 10px;text-align:center;">
+    <p style="color:#a5b4fc;font-size:12px;letter-spacing:3px;text-transform:uppercase;">Created &amp; Founded by</p>
+    <h3 style="color:#c4b5fd;font-size:17px;letter-spacing:1px;margin:8px 0;">OYETADE MAYOWA AYOMIDE</h3>
+    <p style="color:#8b9bbd;font-size:11px;letter-spacing:2px;">FOUNDER &amp; CREATOR · ORVEX AI</p>
+  </div>
   <p>Need help with ORVEX AI?</p>
-
-  <a href="mailto:orvexai.support@gmail.com" style="color:#38bdf8;text-decoration:none;">
-    Contact ORVEX AI Support
-  </a>
-
+  <a href="mailto:orvexai.support@gmail.com" style="color:#38bdf8;text-decoration:none;">Contact ORVEX AI Support</a>
   <br><br>
-
-  <a href="/privacy.html" style="color:#38bdf8;text-decoration:none;">
-    Privacy Policy
-  </a>
-
+  <a href="/privacy.html" style="color:#38bdf8;text-decoration:none;">Privacy Policy</a>
   <br><br>
-
-  <a href="/terms.html" style="color:#38bdf8;text-decoration:none;">
-    Terms of Use
-  </a>
-
+  <a href="/terms.html" style="color:#38bdf8;text-decoration:none;">Terms of Use</a>
   <p>© 2026 ORVEX AI. All rights reserved.</p>
-
 </footer>
+
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
 <script>
-const firebaseConfig={apiKey:"AIzaSyD4oCtqtD8U1wnErSP10iu2sIr0XzaqrQs",authDomain:"orvex-ai-f4bb3.firebaseapp.com",projectId:"orvex-ai-f4bb3",storageBucket:"orvex-ai-f4bb3.firebasestorage.app",messagingSenderId:"330308895814",appId:"1:330308895814:web:88c727af7b07ce5fd4b647",measurementId:"G-CZEGRQQ5R4"};
+const firebaseConfig={
+  apiKey:"AIzaSyD4oCtqtD8U1wnErSP10iu2sIr0XzaqrQs",
+  authDomain:"orvex-ai-f4bb3.firebaseapp.com",
+  projectId:"orvex-ai-f4bb3",
+  storageBucket:"orvex-ai-f4bb3.firebasestorage.app",
+  messagingSenderId:"330308895814",
+  appId:"1:330308895814:web:88c727af7b07ce5fd4b647",
+  measurementId:"G-CZEGRQQ5R4"
+};
+
 firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth(),db=firebase.firestore();
-let currentChatId=null,conversationHistory=[],selectedImage=null,selectedImageUrl=null,isSending=false;
-const authSection=document.getElementById("authSection"),appSection=document.getElementById("appSection"),authStatus=document.getElementById("authStatus"),messages=document.getElementById("messages"),promptInput=document.getElementById("prompt"),sendBtn=document.getElementById("sendBtn"),notice=document.getElementById("notice");
-function setAuthStatus(message,error=true){authStatus.style.color=error?"#fca5a5":"#86efac";authStatus.textContent=message}
-async function createAccount(){const email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;if(!email||!password)return setAuthStatus("Enter your email and password.");if(password.length<6)return setAuthStatus("Your password must contain at least 6 characters.");try{setAuthStatus("Creating your account...",false);await auth.createUserWithEmailAndPassword(email,password);setAuthStatus("Account created successfully!",false)}catch(e){setAuthStatus(e.message)}}
-async function login(){const email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;if(!email||!password)return setAuthStatus("Enter your email and password.");try{setAuthStatus("Logging in...",false);await auth.signInWithEmailAndPassword(email,password)}catch(e){setAuthStatus(e.message)}}
-  window.createAccount = createAccount;
-window.login = login;
-async function logout(){stopSpeaking();await auth.signOut()}
-auth.onAuthStateChanged(async user=>{if(user){authSection.classList.add("hidden");appSection.classList.remove("hidden");document.getElementById("logoutBtn").classList.remove("hidden");const label=document.getElementById("userLabel");label.textContent=user.email||"Signed in";label.classList.remove("hidden");await loadChatHistory();if(!currentChatId)newChat()}else{authSection.classList.remove("hidden");appSection.classList.add("hidden");document.getElementById("logoutBtn").classList.add("hidden");document.getElementById("userLabel").classList.add("hidden")}});
-function newChat(){currentChatId=null;conversationHistory=[];clearImagePreview();messages.innerHTML=`<div class="welcome" id="welcome"><img class="welcome-logo" src="/icons/orvex.svg" alt="ORVEX"><h1>Welcome to ORVEX AI</h1><p>Your intelligent AI assistant. Ask questions, upload images, or use your voice.</p><div class="features"><div class="feature">💬 AI Conversations</div><div class="feature">🖼️ Image Understanding</div><div class="feature">🎨 Image Generation</div><div class="feature">🎙️ Voice Assistant</div></div></div>`;promptInput.value="";notice.textContent="New conversation started."}
-function clearChat(){newChat()}
-function formatAnswer(input){const escaped=String(input||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");const lines=escaped.split("\n");let html="",inList=false,listType="";function closeList(){if(inList){html+=listType==="ol"?"</ol>":"</ul>";inList=false;listType=""}}for(const raw of lines){const line=raw.trim();if(!line){closeList();continue}const heading=line.match(/^#{1,3}\s+(.+)/);if(heading){closeList();html+=`<h3>${heading[1]}</h3>`;continue}const numbered=line.match(/^\d+[\.)]\s+(.+)/),bullet=line.match(/^[-*•]\s+(.+)/);if(numbered||bullet){const type=numbered?"ol":"ul";if(!inList||listType!==type){closeList();html+=type==="ol"?"<ol>":"<ul>";inList=true;listType=type}html+=`<li>${numbered?numbered[1]:bullet[1]}</li>`;continue}closeList();html+=`<p>${line.replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")}</p>`}closeList();return `<div class="formatted-answer">${html}</div>`}
-function addMessage(role,text,imageUrl=null){const welcome=document.getElementById("welcome");if(welcome)welcome.remove();const message=document.createElement("div");message.className=`message ${role}`;const label=document.createElement("div");label.className="role";label.textContent=role==="user"?"YOU":"ORVEX AI";const content=document.createElement("div");if(role==="assistant")content.innerHTML=formatAnswer(text);else content.textContent=text||"";message.append(label,content);if(imageUrl){const img=document.createElement("img");img.src=imageUrl;img.alt="Attached or generated image";message.appendChild(img)}if(role==="assistant"){const actions=document.createElement("div");actions.className="message-actions";const speak=document.createElement("button");speak.type="button";speak.textContent="🔊 Read aloud";speak.onclick=()=>speakText(text);actions.appendChild(speak);message.appendChild(actions)}messages.appendChild(message);messages.scrollTop=messages.scrollHeight;return message}
-async function loadChatHistory(){if(!auth.currentUser)return;try{const snap=await db.collection("users").doc(auth.currentUser.uid).collection("chats").orderBy("updatedAt","desc").limit(30).get(),list=document.getElementById("historyList");list.innerHTML="";snap.forEach(doc=>{const b=document.createElement("button");b.className="history-item";b.textContent=doc.data().title||"New conversation";b.onclick=()=>openChat(doc.id);list.appendChild(b)})}catch(e){console.error("History loading error:",e)}}
-async function saveConversation(){if(!auth.currentUser||!conversationHistory.length)return;if(!currentChatId)currentChatId=db.collection("users").doc(auth.currentUser.uid).collection("chats").doc().id;const first=conversationHistory.find(x=>x.role==="user"),title=first?(first.text||"New conversation").slice(0,45):"New conversation";try{await db.collection("users").doc(auth.currentUser.uid).collection("chats").doc(currentChatId).set({title,messages:conversationHistory,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});await loadChatHistory()}catch(e){console.error("Save error:",e);notice.textContent="Could not save conversation history."}}
-async function openChat(id){if(!auth.currentUser)return;try{const doc=await db.collection("users").doc(auth.currentUser.uid).collection("chats").doc(id).get();if(!doc.exists)return;currentChatId=id;conversationHistory=doc.data().messages||[];clearImagePreview();messages.innerHTML="";conversationHistory.forEach(item=>{const role=item.role==="user"?"user":"assistant";addMessage(role,item.text||item.parts?.map(p=>p.text||"").join("")||"")});notice.textContent="Conversation loaded."}catch(e){console.error(e);notice.textContent="Could not open this conversation."}}
-  document.getElementById("imageInput").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;if(!["image/jpeg","image/png","image/webp"].includes(file.type)){notice.textContent="Please choose a JPG, PNG, or WEBP image.";e.target.value="";return}if(file.size>8*1024*1024){notice.textContent="Please choose an image smaller than 8 MB.";e.target.value="";return}try{selectedImage=await compressImage(file);selectedImageUrl=URL.createObjectURL(file);showImagePreview(selectedImageUrl);notice.textContent="Image attached."}catch(err){console.error(err);notice.textContent="Could not load that image."}});
-function compressImage(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const scale=Math.min(1,1200/Math.max(img.width,img.height)),canvas=document.createElement("canvas");canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);const data=canvas.toDataURL("image/jpeg",.82);resolve({data:data.split(",")[1],mimeType:"image/jpeg"})};img.onerror=reject;img.src=reader.result};reader.onerror=reject;reader.readAsDataURL(file)})}
-function showImagePreview(url){const p=document.getElementById("imagePreview");p.innerHTML="";const img=document.createElement("img");img.src=url;const span=document.createElement("span");span.textContent="Image attached";const remove=document.createElement("button");remove.type="button";remove.textContent="Remove";remove.onclick=clearImagePreview;p.append(img,span,remove);p.classList.remove("hidden")}
-function clearImagePreview(){const p=document.getElementById("imagePreview");p.innerHTML="";p.classList.add("hidden");if(selectedImageUrl)URL.revokeObjectURL(selectedImageUrl);selectedImage=null;selectedImageUrl=null;const input=document.getElementById("imageInput");if(input)input.value=""}
 
+const auth=firebase.auth();
+const db=firebase.firestore();
 
+let currentChatId=null;
+let conversationHistory=[];
+let selectedImage=null;
+let selectedImageUrl=null;
+let isSending=false;
+let recognition=null;
+let installPrompt=null;
 
-async function sendMessage(){
-  if(isSending)return;
+const authSection=document.getElementById("authSection");
+const appSection=document.getElementById("appSection");
+const authStatus=document.getElementById("authStatus");
+const messages=document.getElementById("messages");
+const promptInput=document.getElementById("prompt");
+const sendBtn=document.getElementById("sendBtn");
+const notice=document.getElementById("notice");
 
-  const text=promptInput.value.trim();
-  const mode=document.getElementById("mode").value;
+function setAuthStatus(message,error=true){
+  authStatus.style.color=error?"#fca5a5":"#86efac";
+  authStatus.textContent=message;
+}
 
-  if(!text&&!selectedImage&&mode!=="generate_image"){
-    notice.textContent="Type a message or attach an image.";
+async function createAccount(){
+  const email=document.getElementById("email").value.trim();
+  const password=document.getElementById("password").value;
+
+  if(!email||!password){
+    setAuthStatus("Enter your email and password.");
     return;
   }
 
-  if(!auth.currentUser){
-    notice.textContent="Please log in first.";
+  if(password.length<6){
+    setAuthStatus("Your password must contain at least 6 characters.");
     return;
   }
-
-  if(mode==="edit_image"&&!selectedImage){
-    notice.textContent="Attach the picture you want to edit first.";
-    return;
-  }
-
-  isSending=true;
-  sendBtn.disabled=true;
-  notice.textContent="ORVEX is connecting...";
-
-  const imageForMessage=selectedImageUrl;
-  const imageData=selectedImage;
-  const userText=text||(mode==="generate_image"?"Generate an image.":"Please examine this image.");
-
-  addMessage("user",userText,imageForMessage);
-  promptInput.value="";
-  clearImagePreview();
 
   try{
-    const idToken=await auth.currentUser.getIdToken();
+    setAuthStatus("Creating your account...",false);
+    await auth.createUserWithEmailAndPassword(email,password);
+    setAuthStatus("Account created successfully!",false);
+  }catch(e){
+    setAuthStatus(e.message);
+  }
+}
 
-    const res=await fetch("/api/chat",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "Authorization":"Bearer "+idToken
-      },
-      body:JSON.stringify({
-        message:userText,
-        history:conversationHistory.slice(-12),
-        image:imageData,
-        action:mode==="understand_image"?"chat":mode
-      })
-    });
+async function login(){
+  const email=document.getElementById("email").value.trim();
+  const password=document.getElementById("password").value;
 
-    if(!res.ok){
-      const errorData=await res.json().catch(()=>({}));
-      throw new Error(errorData.error||errorData.message||"The AI request failed.");
+  if(!email||!password){
+    setAuthStatus("Enter your email and password.");
+    return;
+  }
+
+  try{
+    setAuthStatus("Logging in...",false);
+    await auth.signInWithEmailAndPassword(email,password);
+    setAuthStatus("Login successful!",false);
+  }catch(e){
+    setAuthStatus(e.message);
+  }
+}
+
+async function logout(){
+  stopSpeaking();
+  await auth.signOut();
+}
+
+document.getElementById("createAccountBtn").addEventListener("click",createAccount);
+document.getElementById("loginBtn").addEventListener("click",login);
+document.getElementById("logoutBtn").addEventListener("click",logout);
+
+auth.onAuthStateChanged(async user=>{
+  if(user){
+    authSection.classList.add("hidden");
+    appSection.classList.remove("hidden");
+    document.getElementById("logoutBtn").classList.remove("hidden");
+
+    const label=document.getElementById("userLabel");
+    label.textContent=user.email||"Signed in";
+    label.classList.remove("hidden");
+
+    await loadChatHistory();
+    if(!currentChatId)newChat();
+  }else{
+    authSection.classList.remove("hidden");
+    appSection.classList.add("hidden");
+    document.getElementById("logoutBtn").classList.add("hidden");
+    document.getElementById("userLabel").classList.add("hidden");
+  }
+});
+
+function newChat(){
+  currentChatId=null;
+  conversationHistory=[];
+  clearImagePreview();
+
+  messages.innerHTML=`
+    <div class="welcome" id="welcome">
+      <img class="welcome-logo" src="/icons/orvex.svg" alt="ORVEX">
+      <h1>Welcome to ORVEX AI</h1>
+      <p>Your intelligent AI assistant. Ask questions, upload images, or use your voice.</p>
+      <div class="features">
+        <div class="feature">💬 AI Conversations</div>
+        <div class="feature">🖼️ Image Understanding</div>
+        <div class="feature">🎨 Image Generation</div>
+        <div class="feature">🎙️ Voice Assistant</div>
+      </div>
+    </div>`;
+
+  promptInput.value="";
+  notice.textContent="New conversation started.";
+}
+
+function clearChat(){
+  newChat();
+}
+
+function formatAnswer(input){
+  const escaped=String(input||"")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;");
+
+  const lines=escaped.split("\n");
+  let html="";
+  let inList=false;
+  let listType="";
+
+  function closeList(){
+    if(inList){
+      html+=listType==="ol"?"</ol>":"</ul>";
+      inList=false;
+      listType="";
+    }
+  }
+
+  for(const raw of lines){
+    const line=raw.trim();
+
+    if(!line){
+      closeList();
+      continue;
     }
 
-    let answer="";
+    const heading=line.match(/^#{1,3}\s+(.+)/);
 
-    if(mode==="generate_image"||mode==="edit_image"){
-      const data=await res.json();
+    if(heading){
+      closeList();
+      html+=`<h3>${heading[1]}</h3>`;
+      continue;
+    }
 
-      answer=data.answer||"I couldn't generate a response.";
+    const numbered=line.match(/^\d+[\.)]\s+(.+)/);
+    const bullet=line.match(/^[-*•]\s+(.+)/);
 
-      const imageUrl=data.image?.data
-        ?`data:${data.image.mimeType||"image/png"};base64,${data.image.data}`
-        :null;
+    if(numbered||bullet){
+      const type=numbered?"ol":"ul";
 
-      addMessage("assistant",answer,imageUrl);
+      if(!inList||listType!==type){
+        closeList();
+        html+=type==="ol"?"<ol>":"<ul>";
+        inList=true;
+        listType=type;
+      }
 
+      html+=`<li>${numbered?numbered[1]:bullet[1]}</li>`;
+      continue;
+    }
+
+    closeList();
+    html+=`<p>${line.replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")}</p>`;
+  }
+
+  closeList();
+  return `<div class="formatted-answer">${html}</div>`;
+}
+
+function addMessage(role,text,imageUrl=null){
+  const welcome=document.getElementById("welcome");
+  if(welcome)welcome.remove();
+
+  const message=document.createElement("div");
+  message.className=`message ${role}`;
+
+  const label=document.createElement("div");
+  label.className="role";
+  label.textContent=role==="user"?"YOU":"ORVEX AI";
+
+  const content=document.createElement("div");
+
+  if(role==="assistant"){
+    content.innerHTML=formatAnswer(text);
+  }else{
+    content.textContent=text||"";
+  }
+
+  message.append(label,content);
+
+  if(imageUrl){
+    const img=document.createElement("img");
+    img.src=imageUrl;
+    img.alt="Attached or generated image";
+    message.appendChild(img);
+  }
+
+  if(role==="assistant"){
+    const actions=document.createElement("div");
+    actions.className="message-actions";
+
+    const speak=document.createElement("button");
+    speak.type="button";
+    speak.textContent="🔊 Read aloud";
+    speak.onclick=()=>speakText(text);
+
+    actions.appendChild(speak);
+    message.appendChild(actions);
+  }
+
+  messages.appendChild(message);
+  messages.scrollTop=messages.scrollHeight;
+
+  return message;
+}
+
+async function loadChatHistory(){
+  if(!auth.currentUser)return;
+
+  try{
+    const snap=await db.collection("users")
+      .doc(auth.currentUser.uid)
+      .collection("chats")
+      .orderBy("updatedAt","desc")
+      .limit(30)
+      .get();
+
+    const list=document.getElementById("historyList");
+    list.innerHTML="";
+
+    snap.forEach(doc=>{
+      const b=document.createElement("button");
+      b.className="history-item";
+      b.textContent=doc.data().title||"New conversation";
+      b.onclick=()=>openChat(doc.id);
+      list.appendChild(b);
+    });
+  }catch(e){
+    console.error("History loading error:",e);
+  }
+}
+
+async function saveConversation(){
+  if(!auth.currentUser||!conversationHistory.length)return;
+
+  if(!currentChatId){
+    currentChatId=db.collection("users")
+      .doc(auth.currentUser.uid)
+      .collection("chats")
+      .doc().id;
+  }
+
+  const first=conversationHistory.find(x=>x.role==="user");
+  const title=first?(first.text||"New conversation").slice(0,45):"New conversation";
+
+  try{
+    await db.collection("users")
+      .doc(auth.currentUser.uid)
+      .collection("chats")
+      .doc(currentChatId)
+      .set({
+        title,
+        messages:conversationHistory,
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      },{merge:true});
+
+    await loadChatHistory();
+  }catch(e){
+    console.error("Save error:",e);
+    notice.textContent="Could not save conversation history.";
+  }
+}
+
+async function openChat(id){
+  if(!auth.currentUser)return;
+
+  try{
+    const doc=await db.collection("users")
+      .doc(auth.currentUser.uid)
+      .collection("chats")
+      .doc(id)
+      .get();
+
+    if(!doc.exists)return;
+
+    currentChatId=id;
+    conversationHistory=doc.data().messages||[];
+
+    clearImagePreview();
+    messages.innerHTML="";
+
+    conversationHistory.forEach(item=>{
+      const role=item.role==="user"?"user":"assistant";
+      addMessage(role,item.text||item.parts?.map(p=>p.text||"").join("")||"");
+    });
+
+    notice.textContent="Conversation loaded.";
+  }catch(e){
+    console.error(e);
+    notice.textContent="Could not open this conversation.";
+  }
+}
+
+document.getElementById("imageInput").addEventListener("change",async e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+
+  if(!["image/jpeg","image/png","image/webp"].includes(file.type)){
+    notice.textContent="Please choose a JPG, PNG, or WEBP image.";
+    e.target.value="";
+    return;
+  }
+
+  if(file.size>8*1024*1024){
+    notice.textContent="Please choose an image smaller than 8 MB.";
+    e.target.value="";
+    return;
+  }
+
+    try{
+    selectedImage=await compressImage(file);
+    selectedImageUrl=URL.createObjectURL(file);
+    showImagePreview(selectedImageUrl);
+    notice.textContent="Image attached.";
+  }catch(err){
+    console.error(err);
+    notice.textContent="Could not load that image.";
+  }
+});
+
+function compressImage(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+
+    reader.onload=()=>{
+      const img=new Image();
+
+      img.onload=()=>{
+        const scale=Math.min(1,1200/Math.max(img.width,img.height));
+        const canvas=document.createElement("canvas");
+        canvas.width=Math.round(img.width*scale);
+        canvas.height=Math.round(img.height*scale);
+
+        canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
+
+        const data=canvas.toDataURL("image/jpeg",.82);
+
+        resolve({
+          data:data.split(",")[1],
+          mimeType:"image/jpeg"
+        });
+      };
+
+      img.onerror=reject;
+      img.src=reader.result;
+    };
+
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+  }
+  function showImagePreview(url){
+  const p=document.getElementById("imagePreview");
+  p.innerHTML="";
+
+  const img=document.createElement("img");
+  img.src=url;
+
+  const span=document.createElement("span");
+  span.textContent="Image attached";
+
+  const remove=document.createElement("button");
+  remove.type="button";
+  remove.textContent="Remove";
+  remove.onclick=clearImagePreview;
+
+  p.append(img,span,remove);
+  p.classList.remove("hidden");
+}
+
+function clearImagePreview(){
+  const p=document.getElementById("imagePreview");
+  p.innerHTML="";
+  p.classList.add("hidden");
+  if(selectedImageUrl){
+    URL.revokeObjectURL(selectedImageUrl);
+  }
+
+  selectedImage=null;
+  selectedImageUrl=null;
+
+  const input=document.getElementById("imageInput");
+  if(input)input.value="";
+}
 
 async function sendMessage(){
   if(isSending)return;
@@ -225,26 +631,26 @@ async function sendMessage(){
   if(!auth.currentUser){
     notice.textContent="Please log in first.";
     return;
-  }
-
-  if(mode==="edit_image"&&!selectedImage){
-    notice.textContent="Attach the picture you want to edit first.";
-    return;
-  }
+    }
 
   isSending=true;
   sendBtn.disabled=true;
   notice.textContent="ORVEX is connecting...";
 
-  const imageForMessage=selectedImageUrl;
   const imageData=selectedImage;
-  const userText=text||(mode==="generate_image"?"Generate an image.":"Please examine this image.");
+  const imageForMessage=imageData
+    ?`data:${imageData.mimeType};base64,${imageData.data}`
+    :null;
+
+  const userText=text||(mode==="generate_image"
+    ?"Generate an image."
+    :"Please examine this image.");
 
   addMessage("user",userText,imageForMessage);
+
   promptInput.value="";
   clearImagePreview();
-
-  try{
+    try{
     const idToken=await auth.currentUser.getIdToken();
 
     const res=await fetch("/api/chat",{
@@ -264,8 +670,7 @@ async function sendMessage(){
     if(!res.ok){
       const errorText=await res.text();
       let errorMessage=errorText;
-
-      try{
+       try{
         const errorData=JSON.parse(errorText);
         errorMessage=errorData.error||errorData.message||errorText;
       }catch(e){}
@@ -290,8 +695,7 @@ async function sendMessage(){
     }else{
       if(!res.body){
         throw new Error("Streaming is not supported by this browser.");
-      }
-
+  }
       const assistantMessage=addMessage("assistant","");
       const reader=res.body.getReader();
       const decoder=new TextDecoder();
@@ -316,8 +720,7 @@ async function sendMessage(){
           if(!raw||raw==="[DONE]")continue;
 
           let chunk;
-
-          try{
+          ry{
             chunk=JSON.parse(raw);
           }catch(e){
             console.warn("Skipping invalid stream event:",raw);
@@ -338,8 +741,7 @@ async function sendMessage(){
             throw new Error(chunk.error.message||"Gemini stream error.");
           }
         }
-      }
-
+  }
       while(true){
         const {value,done}=await reader.read();
 
@@ -363,8 +765,7 @@ async function sendMessage(){
 
       if(!answer.trim()){
         throw new Error("Gemini returned an empty answer.");
-      }
-
+  }
       const speakButton=assistantMessage.querySelector(".message-actions button");
 
       if(speakButton){
@@ -390,46 +791,77 @@ async function sendMessage(){
     sendBtn.disabled=false;
     promptInput.focus();
   }
-       }
-  
-  
-  let recognition=null;
-function startVoiceInput(){
+}
+  function startVoiceInput(){
   const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SpeechRecognition){notice.textContent="Voice input is not supported by this browser.";return}
-  if(recognition){recognition.stop();recognition=null}
+
+  if(!SpeechRecognition){
+    notice.textContent="Voice input is not supported by this browser.";
+    return;
+  }
+
+  if(recognition){
+    recognition.stop();
+    recognition=null;
+  }
+
   recognition=new SpeechRecognition();
   recognition.lang="en-US";
   recognition.continuous=false;
   recognition.interimResults=false;
-  recognition.onstart=()=>{notice.textContent="Listening... Speak now."};
+
+  recognition.onstart=()=>{
+    notice.textContent="Listening... Speak now.";
+  };
+
   recognition.onresult=e=>{
     const spoken=e.results[0][0].transcript;
     promptInput.value=(promptInput.value+" "+spoken).trim();
     notice.textContent="Voice message added.";
   };
-  recognition.onerror=e=>{notice.textContent="Voice input error: "+e.error};
-  recognition.onend=()=>{recognition=null};
+
+  recognition.onerror=e=>{
+    notice.textContent="Voice input error: "+e.error;
+  };
+
+  recognition.onend=()=>{
+    recognition=null;
+  };
+
   recognition.start();
-}
-function speakText(text){
-  if(!("speechSynthesis" in window)){notice.textContent="Voice playback is not supported.";return}
+  }
+  function speakText(text){
+  if(!("speechSynthesis" in window)){
+    notice.textContent="Voice playback is not supported.";
+    return;
+  }
+
   window.speechSynthesis.cancel();
+
   const speech=new SpeechSynthesisUtterance(text);
   speech.lang="en-US";
   speech.rate=1;
+
   window.speechSynthesis.speak(speech);
 }
+
 function stopSpeaking(){
-  if("speechSynthesis" in window)window.speechSynthesis.cancel();
-  if(recognition){recognition.stop();recognition=null}
+  if("speechSynthesis" in window){
+    window.speechSynthesis.cancel();
+  }
+
+  if(recognition){
+    recognition.stop();
+    recognition=null;
+  }
 }
-let installPrompt=null;
+
 window.addEventListener("beforeinstallprompt",e=>{
   e.preventDefault();
   installPrompt=e;
   document.getElementById("installBtn").classList.remove("hidden");
 });
+
 document.getElementById("installBtn").addEventListener("click",async()=>{
   if(!installPrompt){
     notice.textContent="To install, open Chrome menu and choose Install app or Add to Home screen.";
@@ -440,16 +872,19 @@ document.getElementById("installBtn").addEventListener("click",async()=>{
   installPrompt=null;
   document.getElementById("installBtn").classList.add("hidden");
 });
+
 window.addEventListener("appinstalled",()=>{
   document.getElementById("installBtn").classList.add("hidden");
   notice.textContent="ORVEX AI has been installed.";
 });
+
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>{
     navigator.serviceWorker.register("/service-worker.js")
       .catch(error=>console.error("Service worker registration failed:",error));
   });
 }
+
 promptInput.addEventListener("keydown",e=>{
   if(e.key==="Enter"&&!e.shiftKey){
     e.preventDefault();
@@ -459,3 +894,7 @@ promptInput.addEventListener("keydown",e=>{
 </script>
 </body>
 </html>
+
+  
+  
+    
