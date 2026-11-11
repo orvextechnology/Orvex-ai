@@ -194,41 +194,62 @@ return jsonResponse({
 
     // 5. Send the request to Gemini.
     const geminiResponse = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/" +
-      GEMINI_MODEL + ":generateContent",
+    
+    let response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${TEXT_MODEL}:generateContent`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-goog-api-key": env.ORVEX_GEMINI_KEY
         },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{
-              text:
-                "You are ORVEX AI, a helpful, intelligent and professional AI assistant. " +
-                "Give clear, accurate and useful answers. " +
-                "When users provide images, examine them carefully. " +
-                "Be honest when you are uncertain. " +
-                "Do not claim to have performed actions you have not performed."
-            }]
-          },
-          contents,
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1800
-          }
-        })
+        body: JSON.stringify(requestBody)
       }
     );
 
-    const geminiData = await geminiResponse.json();
+    let data = await response.json().catch(() => ({}));
 
-    if (!geminiResponse.ok) {
-      return jsonResponse({
-        error: "The AI provider could not complete your request. Please try again."
-      }, 502);
+    const firstError = (
+      (data?.error?.status || "") + " " +
+      (data?.error?.message || "")
+    ).toLowerCase();
+
+    const shouldUseBackup =
+      response.status === 503 ||
+      (
+        (
+          response.status === 429 ||
+          /high demand|overload|temporarily unavailable|rate limit|resource exhausted/i.test(firstError)
+        ) &&
+        !/quota exceeded/i.test(firstError)
+      );
+
+    if (shouldUseBackup) {
+      response = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": env.ORVEX_GEMINI_KEY
+          },
+          body: JSON.stringify(requestBody)
+        }
+      );
+
+      data = await response.json().catch(() => ({}));
     }
+
+    if (!response.ok) {
+      const apiMessage =
+        data?.error?.message ||
+        "Both ORVEX AI models are currently unavailable. Please try again.";
+
+      return jsonResponse({
+        error: apiMessage
+      }, response.status >= 500 ? 502 : 400);
+    }
+    
 
     // 6. Extract the AI answer.
     const reply = (
