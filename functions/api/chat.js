@@ -307,35 +307,7 @@ ${message || "Please examine the attached image."}`;
     
     let streamResponse;
 
-    async function tryModelWithRetry(model) {
-
-    // 9. Normal chat and image understanding
-    const prompt = `You are ORVEX AI, a professional, intelligent and reliable conversational assistant.
-
-Answer directly, accurately and naturally.
-Use clear headings, short paragraphs, bullet points and numbered steps where useful.
-Keep simple answers concise and explain difficult topics clearly.
-Never invent facts or pretend to know something uncertain.
-Maintain context when answering follow-up questions.
-
-PREVIOUS CONVERSATION:
-${previousMessages || "No earlier messages."}
-
-CURRENT MESSAGE:
-${message || "Please examine the attached image."}`;
-
-    const parts = [{ text: prompt }];
-
-    if (image) {
-      parts.push({
-        inline_data: {
-          mime_type: image.mimeType,
-          data: image.data
-        }
-      });
-    }
-
-    const data = await callGemini(
+        const data = await callGemini(
       "gemini-2.5-flash",
       parts,
       {
@@ -387,4 +359,4 @@ export async function onRequest({ request }) {
     status: 405,
     headers: { "Content-Type": "application/json" }
   });
-      }
+}
